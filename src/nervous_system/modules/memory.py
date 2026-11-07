@@ -12,6 +12,7 @@ class EpisodicMemory:
     """Episode summaries tagged by game and situation type, so lessons cross games (§13)."""
 
     def __init__(self, path: str | Path):
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
         self.db = sqlite3.connect(str(path))
         self.db.execute("CREATE TABLE IF NOT EXISTS episodes (id INTEGER PRIMARY KEY, "
                         "episode_id TEXT, game TEXT, situation TEXT, summary TEXT, outcome TEXT, "
