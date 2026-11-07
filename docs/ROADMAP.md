@@ -7,7 +7,7 @@ Each phase has an exit criterion. Don't start the next phase until the current o
 - [ ] Run Laya locally (Typed Decisions + English checkpoints); measure single-decision and batched latency on your GPU.
 - [ ] Claim free Jev / Minecraft Combat AI API credits only if needed for baselines; measure latency from Nepal.
 - [ ] Freeze the protocol schemas in `protocol/` (v0).
-- [ ] Choose the repo licence (see `ARCHITECTURE.md` §14 — GPL constraint if any GPL model is ever bundled).
+- [x] Repo licence: MIT. Never bundle GPL models in a distributed build (`ARCHITECTURE.md` §14).
 
 **Exit:** Laya answers a hand-written state text in < 50 ms on local hardware.
 

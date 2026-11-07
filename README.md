@@ -44,4 +44,4 @@ Bots run only in singleplayer, on your own servers, or on servers whose owner ha
 
 ## Licence
 
-Not chosen yet — see Architecture §14 before picking one (GPL implications if any GPL-licensed model is bundled).
+MIT (see `LICENSE`). Keep GPL-licensed models (e.g. the Minecraft Combat AI sword transformer) out of any distributed build, or that build must be GPL — see Architecture §14.
