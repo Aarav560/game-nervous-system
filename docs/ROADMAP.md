@@ -78,10 +78,10 @@ Each phase has an exit criterion. Don't start the next phase until the current o
 **Exit:** 5 bots coordinate a base-building mission with one brain.
 **Result:** 100% success; claims halve completion time (45 s vs 94 s); with Laya, one brain makes 21 calls per episode for 5 bots. → [results](results/phase6-hive.md)
 
-## Phase 7 — Second game — see results
+## Phase 7 — Second game — ◐ partly met
 
 - [x] Pick a game with easy hooks; write its adapter only (Skirmish: this repo's arena shooter).
 - [x] Reuse Laya (with `GAME` line) and the brain unchanged.
 
 **Exit:** the second game reaches a basic benchmark without changes to tiers 1–2 code.
-→ [results](results/phase7-second-game.md)
+**Result:** the adapter-only part holds (no tier 1–2 changes; brain-only 47% success). Reusing Laya regresses (13%): under-trained on 1.2k Skirmish rows. → [results](results/phase7-second-game.md)

@@ -1,0 +1,662 @@
+{
+ "run_id": "20261107T221534",
+ "hardware": {
+  "platform": "Linux-6.18.44-fc-v310-x86_64-with-glibc2.39",
+  "processor": "Intel(R) Xeon(R) Processor @ 2.10GHz x4",
+  "torch_threads": 4,
+  "cuda": false,
+  "torch": "2.15.0+cpu"
+ },
+ "laya_version": "0.4.28",
+ "target_ms": 50,
+ "results": [
+  {
+   "checkpoint": "laya-multilingual",
+   "variant": "fp32",
+   "load_s": 4.746320525999181,
+   "states": {
+    "combat": {
+     "latency_ms": {
+      "n": 20,
+      "mean": 161.03321300033713,
+      "p50": 157.31960700213676,
+      "p95": 200.56982200185303,
+      "min": 139.04937999905087,
+      "max": 206.32904500234872
+     },
+     "state_tokens": 127,
+     "choice": "engage",
+     "acted": true,
+     "margin": 0.9989,
+     "distribution": {
+      "engage": 0.9993,
+      "disengage": 0.0004,
+      "heal": 0.0002,
+      "reposition": 0.0001,
+      "use_ability:totem_swap": 0.0001,
+      "escalate": 0.0001
+     }
+    },
+    "combat_critical": {
+     "latency_ms": {
+      "n": 20,
+      "mean": 152.33245170002192,
+      "p50": 150.42496000023675,
+      "p95": 174.55290500220144,
+      "min": 139.03388299877406,
+      "max": 190.75245099884341
+     },
+     "state_tokens": 132,
+     "choice": "engage",
+     "acted": true,
+     "margin": 0.9999,
+     "distribution": {
+      "engage": 0.9999,
+      "disengage": 0.0,
+      "heal": 0.0,
+      "reposition": 0.0,
+      "use_ability:totem_swap": 0.0,
+      "escalate": 0.0
+     }
+    },
+    "gathering": {
+     "latency_ms": {
+      "n": 20,
+      "mean": 127.49306375008018,
+      "p50": 125.1174050012196,
+      "p95": 140.74373499897774,
+      "min": 120.16609700003755,
+      "max": 147.57635000205482
+     },
+     "state_tokens": 98,
+     "choice": "heal",
+     "acted": false,
+     "margin": 0.2841,
+     "distribution": {
+      "continue": 0.1723,
+      "return:base": 0.0387,
+      "disengage": 0.215,
+      "heal": 0.4991,
+      "explore": 0.038,
+      "escalate": 0.037
+     }
+    }
+   },
+   "batched": {
+    "1": {
+     "batch_ms": {
+      "n": 5,
+      "mean": 145.76076340090367,
+      "p50": 141.8250659990008,
+      "p95": 155.64780600107042,
+      "min": 140.8100060034485,
+      "max": 155.64780600107042
+     },
+     "decisions_per_s": 7.05093978244329
+    },
+    "4": {
+     "batch_ms": {
+      "n": 5,
+      "mean": 468.02291899948614,
+      "p50": 449.3596329994034,
+      "p95": 545.9105660011119,
+      "min": 445.07776699902024,
+      "max": 545.9105660011119
+     },
+     "decisions_per_s": 8.901556139568306
+    },
+    "16": {
+     "batch_ms": {
+      "n": 5,
+      "mean": 1969.6075019994169,
+      "p50": 1982.6303879999614,
+      "p95": 2064.7871929977555,
+      "min": 1842.134549999173,
+      "max": 2064.7871929977555
+     },
+     "decisions_per_s": 8.070087141224787
+    }
+   }
+  },
+  {
+   "checkpoint": "laya-multilingual",
+   "variant": "bf16",
+   "load_s": 0.6278638980002142,
+   "states": {
+    "combat": {
+     "latency_ms": {
+      "n": 20,
+      "mean": 138.7526351500128,
+      "p50": 137.31800700043095,
+      "p95": 164.2700189986499,
+      "min": 115.80612000034307,
+      "max": 171.25960200064583
+     },
+     "state_tokens": 127,
+     "choice": "engage",
+     "acted": true,
+     "margin": 0.9989,
+     "distribution": {
+      "engage": 0.9993,
+      "disengage": 0.0004,
+      "heal": 0.0002,
+      "reposition": 0.0,
+      "use_ability:totem_swap": 0.0001,
+      "escalate": 0.0
+     }
+    },
+    "combat_critical": {
+     "latency_ms": {
+      "n": 20,
+      "mean": 135.64137129997107,
+      "p50": 133.08755999969435,
+      "p95": 159.26250200209324,
+      "min": 120.8887689972471,
+      "max": 164.83142399738426
+     },
+     "state_tokens": 132,
+     "choice": "engage",
+     "acted": true,
+     "margin": 1.0,
+     "distribution": {
+      "engage": 1.0,
+      "disengage": 0.0,
+      "heal": 0.0,
+      "reposition": 0.0,
+      "use_ability:totem_swap": 0.0,
+      "escalate": 0.0
+     }
+    },
+    "gathering": {
+     "latency_ms": {
+      "n": 20,
+      "mean": 119.69197004982561,
+      "p50": 116.16665900146472,
+      "p95": 147.6052809994144,
+      "min": 102.70611899977666,
+      "max": 153.30151099988143
+     },
+     "state_tokens": 98,
+     "choice": "heal",
+     "acted": false,
+     "margin": 0.283,
+     "distribution": {
+      "continue": 0.1743,
+      "return:base": 0.0389,
+      "disengage": 0.2136,
+      "heal": 0.4966,
+      "explore": 0.0389,
+      "escalate": 0.0377
+     }
+    }
+   },
+   "batched": {
+    "1": {
+     "batch_ms": {
+      "n": 5,
+      "mean": 134.37935460024164,
+      "p50": 130.1596890007204,
+      "p95": 150.67944600014016,
+      "min": 128.84083400058444,
+      "max": 150.67944600014016
+     },
+     "decisions_per_s": 7.682870231769417
+    },
+    "4": {
+     "batch_ms": {
+      "n": 5,
+      "mean": 297.3087175989349,
+      "p50": 276.29145899845753,
+      "p95": 369.0667539995047,
+      "min": 261.1444809990644,
+      "max": 369.0667539995047
+     },
+     "decisions_per_s": 14.47746526258827
+    },
+    "16": {
+     "batch_ms": {
+      "n": 5,
+      "mean": 960.1028732009581,
+      "p50": 964.0180850001343,
+      "p95": 1008.7176100023498,
+      "min": 919.4544300007692,
+      "max": 1008.7176100023498
+     },
+     "decisions_per_s": 16.597199003790237
+    }
+   }
+  },
+  {
+   "checkpoint": "laya-multilingual",
+   "variant": "int8",
+   "load_s": 1.4399082310010272,
+   "states": {
+    "combat": {
+     "latency_ms": {
+      "n": 20,
+      "mean": 94.61774239971419,
+      "p50": 93.4161339973798,
+      "p95": 113.70887699740706,
+      "min": 86.42958300333703,
+      "max": 128.91055300133303
+     },
+     "state_tokens": 127,
+     "choice": "engage",
+     "acted": false,
+     "margin": 0.3739,
+     "distribution": {
+      "engage": 0.5879,
+      "disengage": 0.214,
+      "heal": 0.0553,
+      "reposition": 0.0221,
+      "use_ability:totem_swap": 0.1034,
+      "escalate": 0.0172
+     }
+    },
+    "combat_critical": {
+     "latency_ms": {
+      "n": 20,
+      "mean": 92.86059694950382,
+      "p50": 92.45111999916844,
+      "p95": 99.74189399872557,
+      "min": 88.46236799945473,
+      "max": 101.857925998047
+     },
+     "state_tokens": 132,
+     "choice": "engage",
+     "acted": false,
+     "margin": 0.1868,
+     "distribution": {
+      "engage": 0.503,
+      "disengage": 0.3162,
+      "heal": 0.032,
+      "reposition": 0.0278,
+      "use_ability:totem_swap": 0.0846,
+      "escalate": 0.0363
+     }
+    },
+    "gathering": {
+     "latency_ms": {
+      "n": 20,
+      "mean": 76.72875194948574,
+      "p50": 76.30911500018556,
+      "p95": 81.9665779999923,
+      "min": 73.58572899829596,
+      "max": 82.25104699886288
+     },
+     "state_tokens": 98,
+     "choice": "continue",
+     "acted": false,
+     "margin": 0.5259,
+     "distribution": {
+      "continue": 0.6282,
+      "return:base": 0.1023,
+      "disengage": 0.0673,
+      "heal": 0.0977,
+      "explore": 0.0801,
+      "escalate": 0.0244
+     }
+    }
+   },
+   "batched": {
+    "1": {
+     "batch_ms": {
+      "n": 5,
+      "mean": 87.30544339923654,
+      "p50": 87.29144899916719,
+      "p95": 89.1560700001719,
+      "min": 85.89529900200432,
+      "max": 89.1560700001719
+     },
+     "decisions_per_s": 11.455875821348098
+    },
+    "4": {
+     "batch_ms": {
+      "n": 5,
+      "mean": 267.46241380024003,
+      "p50": 259.20773499819916,
+      "p95": 283.95072700004675,
+      "min": 258.05339900034596,
+      "max": 283.95072700004675
+     },
+     "decisions_per_s": 15.43163825735289
+    },
+    "16": {
+     "batch_ms": {
+      "n": 5,
+      "mean": 1050.5305474005581,
+      "p50": 1068.112918001134,
+      "p95": 1095.9609710007499,
+      "min": 985.7881190000626,
+      "max": 1095.9609710007499
+     },
+     "decisions_per_s": 14.979689628641879
+    }
+   }
+  },
+  {
+   "checkpoint": "laya-typed-decisions",
+   "variant": "fp32",
+   "load_s": 1.0703598659965792,
+   "states": {
+    "combat": {
+     "latency_ms": {
+      "n": 20,
+      "mean": 383.4170278496458,
+      "p50": 372.8588159974606,
+      "p95": 425.32518499865546,
+      "min": 359.87350800132845,
+      "max": 462.33882999877096
+     },
+     "state_tokens": 129,
+     "choice": "engage",
+     "acted": false,
+     "margin": 0.4185,
+     "distribution": {
+      "engage": 0.5519,
+      "disengage": 0.0794,
+      "heal": 0.0721,
+      "reposition": 0.1035,
+      "use_ability:totem_swap": 0.0598,
+      "escalate": 0.1334
+     }
+    },
+    "combat_critical": {
+     "latency_ms": {
+      "n": 20,
+      "mean": 388.19146290024946,
+      "p50": 380.409736000729,
+      "p95": 430.11287300032564,
+      "min": 370.51902399980463,
+      "max": 445.6675789988367
+     },
+     "state_tokens": 135,
+     "choice": "engage",
+     "acted": false,
+     "margin": 0.446,
+     "distribution": {
+      "engage": 0.5706,
+      "disengage": 0.075,
+      "heal": 0.0723,
+      "reposition": 0.1106,
+      "use_ability:totem_swap": 0.047,
+      "escalate": 0.1246
+     }
+    },
+    "gathering": {
+     "latency_ms": {
+      "n": 20,
+      "mean": 324.53665985012776,
+      "p50": 315.3820139996242,
+      "p95": 349.3970149975212,
+      "min": 303.73915800009854,
+      "max": 432.6635190009256
+     },
+     "state_tokens": 98,
+     "choice": "continue",
+     "acted": false,
+     "margin": 0.1688,
+     "distribution": {
+      "continue": 0.4471,
+      "return:base": 0.2783,
+      "disengage": 0.0601,
+      "heal": 0.0574,
+      "explore": 0.0728,
+      "escalate": 0.0842
+     }
+    }
+   },
+   "batched": {
+    "1": {
+     "batch_ms": {
+      "n": 5,
+      "mean": 406.40578200036543,
+      "p50": 403.72361199843,
+      "p95": 428.7477850011783,
+      "min": 385.31321800110163,
+      "max": 428.7477850011783
+     },
+     "decisions_per_s": 2.4769420719536432
+    },
+    "4": {
+     "batch_ms": {
+      "n": 5,
+      "mean": 1416.0162496002158,
+      "p50": 1389.2360019999614,
+      "p95": 1468.7385059987719,
+      "min": 1372.1517000012682,
+      "max": 1468.7385059987719
+     },
+     "decisions_per_s": 2.879280406094825
+    },
+    "16": {
+     "batch_ms": {
+      "n": 5,
+      "mean": 6004.819786200096,
+      "p50": 6020.361246999528,
+      "p95": 6123.746081000718,
+      "min": 5877.044083998044,
+      "max": 6123.746081000718
+     },
+     "decisions_per_s": 2.657647829351469
+    }
+   }
+  },
+  {
+   "checkpoint": "laya-typed-decisions",
+   "variant": "bf16",
+   "load_s": 0.5780959549992986,
+   "states": {
+    "combat": {
+     "latency_ms": {
+      "n": 20,
+      "mean": 308.51962430024287,
+      "p50": 303.9301040007558,
+      "p95": 342.79400000013993,
+      "min": 273.75736799876904,
+      "max": 349.2837369994959
+     },
+     "state_tokens": 129,
+     "choice": "engage",
+     "acted": false,
+     "margin": 0.4188,
+     "distribution": {
+      "engage": 0.5515,
+      "disengage": 0.0798,
+      "heal": 0.0728,
+      "reposition": 0.1033,
+      "use_ability:totem_swap": 0.06,
+      "escalate": 0.1327
+     }
+    },
+    "combat_critical": {
+     "latency_ms": {
+      "n": 20,
+      "mean": 324.88762754983327,
+      "p50": 323.44678699882934,
+      "p95": 357.2052950003126,
+      "min": 270.0832420014194,
+      "max": 357.7169519994641
+     },
+     "state_tokens": 135,
+     "choice": "engage",
+     "acted": false,
+     "margin": 0.4443,
+     "distribution": {
+      "engage": 0.5691,
+      "disengage": 0.0758,
+      "heal": 0.0721,
+      "reposition": 0.1118,
+      "use_ability:totem_swap": 0.0464,
+      "escalate": 0.1248
+     }
+    },
+    "gathering": {
+     "latency_ms": {
+      "n": 20,
+      "mean": 293.61259100005555,
+      "p50": 296.7205989989452,
+      "p95": 340.2174279981409,
+      "min": 259.096618003241,
+      "max": 347.66258699892205
+     },
+     "state_tokens": 98,
+     "choice": "continue",
+     "acted": false,
+     "margin": 0.1615,
+     "distribution": {
+      "continue": 0.4433,
+      "return:base": 0.2818,
+      "disengage": 0.06,
+      "heal": 0.0577,
+      "explore": 0.0722,
+      "escalate": 0.0851
+     }
+    }
+   },
+   "batched": {
+    "1": {
+     "batch_ms": {
+      "n": 5,
+      "mean": 295.6767803996627,
+      "p50": 299.23895499814535,
+      "p95": 306.9449039976462,
+      "min": 270.7194469985552,
+      "max": 306.9449039976462
+     },
+     "decisions_per_s": 3.341810894929097
+    },
+    "4": {
+     "batch_ms": {
+      "n": 5,
+      "mean": 611.1790574002953,
+      "p50": 587.3240720029571,
+      "p95": 664.0927989974443,
+      "min": 571.814197999629,
+      "max": 664.0927989974443
+     },
+     "decisions_per_s": 6.810550070523689
+    },
+    "16": {
+     "batch_ms": {
+      "n": 5,
+      "mean": 2357.484769601433,
+      "p50": 2401.0776939976495,
+      "p95": 2485.0984280019475,
+      "min": 2176.194942003349,
+      "max": 2485.0984280019475
+     },
+     "decisions_per_s": 6.663674415866554
+    }
+   }
+  },
+  {
+   "checkpoint": "laya-typed-decisions",
+   "variant": "int8",
+   "load_s": 4.094796552002663,
+   "states": {
+    "combat": {
+     "latency_ms": {
+      "n": 20,
+      "mean": 191.70068870007526,
+      "p50": 188.02695400154334,
+      "p95": 202.34170500043547,
+      "min": 183.26855299892486,
+      "max": 223.75441300027887
+     },
+     "state_tokens": 129,
+     "choice": "engage",
+     "acted": false,
+     "margin": 0.0344,
+     "distribution": {
+      "engage": 0.2723,
+      "disengage": 0.2379,
+      "heal": 0.0522,
+      "reposition": 0.109,
+      "use_ability:totem_swap": 0.0964,
+      "escalate": 0.2322
+     }
+    },
+    "combat_critical": {
+     "latency_ms": {
+      "n": 20,
+      "mean": 198.20462644966028,
+      "p50": 195.80193300134852,
+      "p95": 209.75166999778594,
+      "min": 187.64812299923506,
+      "max": 216.76225400005933
+     },
+     "state_tokens": 135,
+     "choice": "engage",
+     "acted": false,
+     "margin": 0.2361,
+     "distribution": {
+      "engage": 0.4154,
+      "disengage": 0.1793,
+      "heal": 0.0589,
+      "reposition": 0.0809,
+      "use_ability:totem_swap": 0.1107,
+      "escalate": 0.1549
+     }
+    },
+    "gathering": {
+     "latency_ms": {
+      "n": 20,
+      "mean": 172.03740180029854,
+      "p50": 170.78899100306444,
+      "p95": 187.14279599953443,
+      "min": 160.7607400001143,
+      "max": 212.66881399787962
+     },
+     "state_tokens": 98,
+     "choice": "continue",
+     "acted": false,
+     "margin": 0.0269,
+     "distribution": {
+      "continue": 0.2781,
+      "return:base": 0.2512,
+      "disengage": 0.0701,
+      "heal": 0.0637,
+      "explore": 0.1734,
+      "escalate": 0.1635
+     }
+    }
+   },
+   "batched": {
+    "1": {
+     "batch_ms": {
+      "n": 5,
+      "mean": 198.9844436007843,
+      "p50": 198.9444810023997,
+      "p95": 210.39692499834928,
+      "min": 187.44238300132565,
+      "max": 210.39692499834928
+     },
+     "decisions_per_s": 5.026527978868325
+    },
+    "4": {
+     "batch_ms": {
+      "n": 5,
+      "mean": 643.4486086000106,
+      "p50": 639.332334001665,
+      "p95": 672.9113010005676,
+      "min": 632.0708800012653,
+      "max": 672.9113010005676
+     },
+     "decisions_per_s": 6.256526984899192
+    },
+    "16": {
+     "batch_ms": {
+      "n": 5,
+      "mean": 2586.440365598537,
+      "p50": 2606.682212997839,
+      "p95": 2664.196206998895,
+      "min": 2451.0222549979517,
+      "max": 2664.196206998895
+     },
+     "decisions_per_s": 6.1380708090224205
+    }
+   }
+  }
+ ]
+}
