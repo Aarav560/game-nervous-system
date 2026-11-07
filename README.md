@@ -10,36 +10,35 @@ An AI that plays real-time games by splitting **thinking** from **reacting**:
 
 Information flows **down as intent** and **up as surprise**. When Laya is unsure it escalates to the brain; every correction becomes training data, so the system gets faster the more it plays.
 
-First testbed: **Minecraft**, building on the existing Baritone/AltoClef bot army. Designed to extend to other games through per-game adapters.
+First testbed: **Minecraft** (Mineflayer bridge, tested against a local flying-squid server). Fast training and benchmark loops run in **GridCraft**, this repo's own headless survival/PvP simulator. **Skirmish**, an arena shooter, is the second game and was added as an adapter only.
 
 ## Docs
 
 - [Architecture](docs/ARCHITECTURE.md) — full design: tiers, modules, protocol, learning loop, multi-game plan, rules.
-- [Roadmap](docs/ROADMAP.md) — phases with exit criteria.
+- [Roadmap](docs/ROADMAP.md) — phases with exit criteria and current status.
+- [Results](docs/results/README.md) — what each phase measured, including what did **not** pass.
 - [References](docs/REFERENCES.md) — Laya, Jev, Minecraft Combat AI, related work.
 
 ## Layout
 
 ```
-docs/                 design docs
-protocol/             JSON schemas for messages between tiers (v0, frozen)
-scripts/              benchmark harness (bench_laya.py: Phase 0 latency)
-tests/                pytest suite (protocol/schema agreement, Laya wrapper, escalation)
-configs/games/        per-game config: latency profile, play rules, rewards, options
-src/nervous_system/   Python package skeleton (interfaces only, no implementation yet)
-  brain/              tier 1 — LLM planner interface
-  laya/               tier 2 — Laya decision model wrapper, escalation, calibration
-  vocabulary.py       shared action vocabulary (Architecture §9)
-  reflex/             tier 3 — reflex controller contract
-  modules/            forward model, salience, memory, drives, kill switch
-  adapters/           GameAdapter base + Minecraft stub
-  runtime/            bus + main loop
-CLAUDE.md             instructions for the Claude Code session that builds this
+docs/                    design docs + docs/results/ (per-phase results)
+protocol/                JSON schemas for messages between tiers (v0, frozen)
+configs/games/           per-game config: latency profile, play rules, rewards, option sets
+bridge/minecraft/        Node: Mineflayer bridge (tier-3 reflexes) + flying-squid local test server
+scripts/                 bench, run_minecraft, make_dataset, train_laya, sleep, train_combat, run_hive, phase3
+src/nervous_system/
+  protocol.py            pydantic message models (Goal, Decision, Escalation, Event)
+  vocabulary.py          shared action vocabulary (Architecture §9)
+  state.py               game-agnostic Facts / Entity (proprioception)
+  brain/                 tier 1 — Brain ABC, ClaudeBrain, ScriptedBrain (playbook stand-in)
+  laya/                  tier 2 — Laya wrapper, escalation policy, cache, calibration, metrics
+  modules/               kill switch, forward model, salience, drives, memory
+  runtime/               per-bot loop, experience log (JSONL + SQLite), bus, hive
+  adapters/              GameAdapter base; minecraft/, gridcraft/, skirmish/
+  wiring.py              builds runtimes from names (the only place that knows every game)
+tests/                   pytest suite, including the CLAUDE.md ground rules as tests
 ```
-
-## Status
-
-Phase 0 in progress — see [Roadmap](docs/ROADMAP.md) and [results](docs/results/).
 
 ## Setup
 
@@ -48,8 +47,15 @@ python -m venv .venv && . .venv/bin/activate
 pip install torch --index-url https://download.pytorch.org/whl/cpu   # or a CUDA build on a GPU box
 pip install -e '.[laya,dev]'
 pytest
-python scripts/bench_laya.py          # Phase 0 Laya latency benchmark
+
+python scripts/bench_laya.py                                   # Phase 0 Laya latency
+(cd bridge/minecraft && npm install) && python scripts/run_minecraft.py   # Phase 1, real protocol
+python scripts/bench.py --game gridcraft --mode brain --episodes 10       # benchmark harness
 ```
+
+To use Claude as the brain, install `anthropic`, set `ANTHROPIC_API_KEY` and construct
+`nervous_system.brain.claude.ClaudeBrain`. The recorded results in this repo use the scripted
+stand-in brain, because no API key was available where they were produced.
 
 ## Rules
 
@@ -57,4 +63,4 @@ Bots run only in singleplayer, on your own servers, or on servers whose owner ha
 
 ## Licence
 
-MIT (see `LICENSE`). Keep GPL-licensed models (e.g. the Minecraft Combat AI sword transformer) out of any distributed build, or that build must be GPL — see Architecture §14.
+MIT (see `LICENSE`). Keep GPL-licensed models (e.g. the Minecraft Combat AI sword transformer) out of any distributed build, or that build must be GPL — see Architecture §14. No third-party model weights are committed here.

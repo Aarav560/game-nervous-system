@@ -56,10 +56,15 @@ def metrics(dists, labels, policy: EscalationPolicy) -> dict:
             "accuracy_when_acted": acc_act}
 
 
-def evaluate(ckpt: str, data: Path, policy: EscalationPolicy, max_rows: int = 600) -> dict:
+def evaluate(ckpt: str, data: Path, policy: EscalationPolicy, max_rows: int = 600, variant: str = "int8") -> dict:
+    """Calibrate + score the checkpoint as the runtime will run it (same quantisation)."""
     import random
     import laya
+    import torch
     agent = laya.load(ckpt, device="cpu")
+    if variant == "int8":
+        agent.model.encoder = torch.ao.quantization.quantize_dynamic(
+            agent.model.encoder, {torch.nn.Linear}, dtype=torch.qint8)
     rng = random.Random(0)
     calib, test = read(data / "calib.jsonl"), read(data / "test.jsonl")
     calib = rng.sample(calib, min(max_rows, len(calib)))
@@ -73,7 +78,7 @@ def evaluate(ckpt: str, data: Path, policy: EscalationPolicy, max_rows: int = 60
     keys = [list(d) for d in dc]
     cal.fit([[math.log(max(d[k], 1e-9)) for k in ks] for d, ks in zip(dc, keys)],
             [ks.index(y) for ks, y in zip(keys, yc)])
-    res = {"checkpoint": ckpt, "temperature": cal.temperature,
+    res = {"checkpoint": ckpt, "variant": variant, "temperature": cal.temperature,
            "test_raw": metrics(dt, yt, policy),
            "test_calibrated": metrics([cal.apply(d) for d in dt], yt, policy),
            "calib_raw": metrics(dc, yc, policy), "eval_s": round(time.time() - t0, 1)}
@@ -100,6 +105,7 @@ def main() -> None:
     ap.add_argument("--max-train", type=int, default=0)
     ap.add_argument("--eval-only", action="store_true")
     ap.add_argument("--eval-max", type=int, default=600)
+    ap.add_argument("--variant", default="int8", choices=["fp32", "int8"])
     ap.add_argument("--init", help="start from this fine-tuned checkpoint instead of --base")
     ap.add_argument("--threads", type=int, default=os.cpu_count())
     a = ap.parse_args()
@@ -122,7 +128,7 @@ def main() -> None:
         summary["finetune"] = finetune(str(train_path), a.init or a.base, a.out, cfg, device="cpu")
         summary["train_s"] = round(time.time() - t0, 1)
         print(f"trained in {summary['train_s']}s", flush=True)
-    summary["eval"] = evaluate(a.out, data, policy, a.eval_max)
+    summary["eval"] = evaluate(a.out, data, policy, a.eval_max, a.variant)
     Path(a.out).mkdir(parents=True, exist_ok=True)
     (Path(a.out) / "gns_calibration.json").write_text(json.dumps(
         {"temperature": summary["eval"]["temperature"], "data": str(data), "base": a.base,

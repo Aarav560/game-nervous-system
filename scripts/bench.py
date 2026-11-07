@@ -24,14 +24,14 @@ from nervous_system.runtime.loop import RuntimeConfig  # noqa: E402
 from nervous_system.wiring import build_runtime, game_spec, laya_model, scripted_brain  # noqa: E402
 
 CORE = ("success_rate", "deaths_per_episode")
-TOLERANCE = {"success_rate": 0.10, "deaths_per_episode": 0.10}
+TOLERANCE = {"success_rate": 0.15, "deaths_per_episode": 0.15}   # n=10 episodes: one episode = 0.10
 
 
 def run_suite(game: str, mode: str, scenarios: list[str], episodes: int, seed0: int = 1000,
               checkpoint: str | None = None, variant: str = "int8", temperature: float | None = None,
               event_driven: bool = True, label_fraction: float = 0.0, log_root: Path | None = None,
               run_id: str | None = None, quiet: bool = False, heartbeat_s: float | None = None,
-              model=None) -> dict:
+              model=None, adapter_kw: dict | None = None) -> dict:
     spec = game_spec(game)
     run_id = run_id or time.strftime(f"{game}-{mode}-%Y%m%dT%H%M%S")
     log = ExperienceLog(log_root or ROOT / "logs" / run_id)
@@ -39,7 +39,7 @@ def run_suite(game: str, mode: str, scenarios: list[str], episodes: int, seed0: 
         model = laya_model(checkpoint, variant, temperature)
     out = {"run_id": run_id, "game": game, "mode": mode, "checkpoint": checkpoint, "variant": variant,
            "temperature": temperature, "event_driven": event_driven, "heartbeat_s": heartbeat_s, "episodes": episodes,
-           "seed0": seed0, "scenarios": {}}
+           "seed0": seed0, "adapter_kw": adapter_kw or {}, "scenarios": {}}
     t_wall = time.time()
     for sc in scenarios:
         rows = []
@@ -51,7 +51,7 @@ def run_suite(game: str, mode: str, scenarios: list[str], episodes: int, seed0: 
                                 brain_latency_s=spec.config.get("brain", {}).get("latency_s", 2.0),
                                 heartbeat_s=heartbeat_s or spec.config.get("brain", {}).get("heartbeat_s", 10.0),
                                 event_driven=event_driven, label_fraction=label_fraction, seed=seed)
-            rt, adapter = build_runtime(spec, sc, seed, log, brain, model, run_id, cfg)
+            rt, adapter = build_runtime(spec, sc, seed, log, brain, model, run_id, cfg, **(adapter_kw or {}))
             w0 = time.time()
             st = rt.run()
             res = adapter.episode_result()
@@ -129,12 +129,14 @@ def main() -> None:
     ap.add_argument("--poll-brain", action="store_true", help="brain reviews every heartbeat (not event-driven)")
     ap.add_argument("--label-fraction", type=float, default=0.0)
     ap.add_argument("--heartbeat", type=float)
+    ap.add_argument("--combat-policy", help="GridCraft: learned combat reflex under `engage`")
     ap.add_argument("--baseline")
     ap.add_argument("--out")
     a = ap.parse_args()
     spec = game_spec(a.game)
     res = run_suite(a.game, a.mode, a.scenarios or spec.scenarios, a.episodes, a.seed0, a.checkpoint,
-                    a.variant, a.temperature, not a.poll_brain, a.label_fraction, heartbeat_s=a.heartbeat)
+                    a.variant, a.temperature, not a.poll_brain, a.label_fraction, heartbeat_s=a.heartbeat,
+                    adapter_kw={"combat_policy": a.combat_policy} if a.combat_policy else None)
     if a.baseline:
         res["gate"] = compare(res, json.loads(Path(a.baseline).read_text()))
     for sc, s in res["scenarios"].items():
