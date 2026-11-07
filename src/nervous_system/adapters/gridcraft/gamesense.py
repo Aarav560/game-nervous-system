@@ -99,11 +99,15 @@ class StyleSelector:
             self.best[style] = max(cands, key=cands.get)
         self.default, self.min_conf = default, min_conf
         self.current = default
+        self.table = np.array([[win_table.get(f"{p}/{s}", 0.0) for s in STYLES] for p in players])
+        self.names = list(players)
 
     def act(self, w: World, me: Agent, opp: Agent) -> dict:
         from .combat import observe
         self.feats(me, opp)
-        st = self.feats.style(opp.id)
-        if st and st[1] >= self.min_conf:
-            self.current = self.best[st[0]]
+        tr = self.feats.trackers.get(opp.id)
+        if tr is not None and tr.n >= 20 and self.feats.om is not None:
+            p = self.feats.om.probs(tr.f)
+            # expected win rate of each policy under the style posterior (robust to misreads)
+            self.current = self.names[int((self.table @ p).argmax())]
         return self.players[self.current](w, me, opp, observe(w, me, opp))

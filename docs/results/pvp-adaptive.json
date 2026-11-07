@@ -303,5 +303,82 @@
   "adaptive": 0.7811111111111111,
   "adaptive_inputs_blanked": 0.778888888888889
  },
- "train_s": 370.5
+ "train_s": 370.5,
+ "counter_pick_selector": {
+  "rounds_per_style": 150,
+  "per_style": {
+   "practice": {
+    "reflex": 0.9333333333333333,
+    "pure_scripted": 0.9,
+    "expert_heal": 0.5,
+    "selector": 0.9,
+    "selector_final_pick": {
+     "pure_scripted": 122,
+     "expert_heal": 6,
+     "reflex": 22
+    }
+   },
+   "aggro": {
+    "reflex": 0.36666666666666664,
+    "pure_scripted": 0.34,
+    "expert_heal": 0.31333333333333335,
+    "selector": 0.36666666666666664,
+    "selector_final_pick": {
+     "pure_scripted": 150
+    }
+   },
+   "kiter": {
+    "reflex": 0.8733333333333333,
+    "pure_scripted": 0.8133333333333334,
+    "expert_heal": 1.0,
+    "selector": 1.0,
+    "selector_final_pick": {
+     "expert_heal": 150
+    }
+   },
+   "healer": {
+    "reflex": 0.9933333333333333,
+    "pure_scripted": 0.96,
+    "expert_heal": 0.9066666666666666,
+    "selector": 0.9933333333333333,
+    "selector_final_pick": {
+     "reflex": 150
+    }
+   },
+   "counter": {
+    "reflex": 0.8933333333333333,
+    "pure_scripted": 0.92,
+    "expert_heal": 1.0,
+    "selector": 1.0,
+    "selector_final_pick": {
+     "expert_heal": 150
+    }
+   },
+   "erratic": {
+    "reflex": 0.6266666666666667,
+    "pure_scripted": 0.8666666666666667,
+    "expert_heal": 0.8666666666666667,
+    "selector": 0.8866666666666667,
+    "selector_final_pick": {
+     "pure_scripted": 89,
+     "expert_heal": 60,
+     "reflex": 1
+    }
+   }
+  },
+  "mean_win": {
+   "reflex": 0.7811111111111111,
+   "pure_scripted": 0.7999999999999999,
+   "expert_heal": 0.7644444444444445,
+   "selector": 0.8577777777777778
+  },
+  "best_policy_per_style": {
+   "practice": "reflex",
+   "aggro": "pure_scripted",
+   "kiter": "expert_heal",
+   "healer": "reflex",
+   "counter": "expert_heal",
+   "erratic": "expert_heal"
+  }
+ }
 }
