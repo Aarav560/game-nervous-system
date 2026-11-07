@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "event.schema.json",
+  "title": "Event",
+  "description": "Salience filter or forward model -> Brain/Laya. Includes Surprise and Outcome kinds (Architecture §7, §10).",
+  "type": "object",
+  "required": ["bot_id", "game", "episode_id", "t", "kind", "salience"],
+  "properties": {
+    "bot_id": {"type": "string"},
+    "game": {"type": "string"},
+    "episode_id": {"type": "string"},
+    "t": {"type": "number"},
+    "kind": {"enum": ["event", "surprise", "outcome", "correction", "override", "kill"]},
+    "salience": {"type": "number", "minimum": 0, "maximum": 1},
+    "description": {"type": "string"},
+    "data": {"type": "object"}
+  }
+}

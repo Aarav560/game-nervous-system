@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "decision.schema.json",
+  "title": "Decision",
+  "description": "Laya -> reflex layer + log (Architecture §5).",
+  "type": "object",
+  "required": ["bot_id", "game", "episode_id", "t", "goal_id", "state_text", "options", "choice", "distribution", "acted"],
+  "properties": {
+    "bot_id": {"type": "string"},
+    "game": {"type": "string"},
+    "episode_id": {"type": "string"},
+    "t": {"type": "number"},
+    "wall_t": {"type": "number"},
+    "goal_id": {"type": "string"},
+    "state_text": {"type": "string"},
+    "options": {"type": "array", "items": {"type": "string"}, "minItems": 2},
+    "choice": {"type": "string"},
+    "distribution": {"type": "object", "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1}},
+    "margin": {"type": "number"},
+    "acted": {"type": "boolean", "description": "false when the decision was escalated"},
+    "latency_ms": {"type": "number"},
+    "model": {"type": "string", "description": "checkpoint id"}
+  }
+}

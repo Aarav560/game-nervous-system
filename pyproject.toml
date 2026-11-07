@@ -1,0 +1,12 @@
+[project]
+name = "game-nervous-system"
+version = "0.0.1"
+description = "Brain (LLM) + nervous system (Laya) + reflexes for real-time game AI"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+laya = ["torch", "transformers"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

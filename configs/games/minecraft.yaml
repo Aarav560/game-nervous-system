@@ -1,0 +1,36 @@
+# Minecraft adapter config (Architecture §8, §14)
+game: minecraft
+profile: realtime_strategic        # turn_based | realtime_strategic | realtime_twitch
+tick_hz: 20
+
+brain:
+  heartbeat_s: 10
+  timeout_s: 8
+
+laya:
+  checkpoint: laya-typed-decisions   # fine-tuned checkpoint id once trained
+  cadence_ms: 100
+  act_threshold: 0.75
+  min_margin: 0.15
+  max_state_tokens: 350
+
+play_rules:
+  allowed: [singleplayer, own_server, permitted_server]
+  permitted_servers: []              # - {address: "...", owner: "...", agreed_on: "YYYY-MM-DD"}
+
+autonomic:
+  eat_below_hunger: 14
+  totem_offhand: true
+  reequip_broken_tools: true
+
+reward:
+  damage_taken: -1.0
+  damage_dealt: 0.5
+  death: -20.0
+  goal_complete: 10.0
+  idle_second: -0.05
+
+option_sets:
+  combat: [engage, disengage, heal, reposition, "use_ability:totem_swap", escalate]
+  gathering: [continue, "return:base", disengage, heal, explore, escalate]
+  travel: [continue, reposition, disengage, wait, escalate]
