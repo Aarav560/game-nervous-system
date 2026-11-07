@@ -93,9 +93,10 @@ def expert_action(w: World, me: Agent, opp: Agent) -> dict[str, int]:
 
 
 class CombatPolicy(nn.Module):
-    def __init__(self, hidden: int = 128):
+    def __init__(self, hidden: int = 128, obs_dim: int = OBS_DIM):
         super().__init__()
-        self.trunk = nn.Sequential(nn.Linear(OBS_DIM, hidden), nn.Tanh(), nn.Linear(hidden, hidden), nn.Tanh())
+        self.obs_dim = obs_dim
+        self.trunk = nn.Sequential(nn.Linear(obs_dim, hidden), nn.Tanh(), nn.Linear(hidden, hidden), nn.Tanh())
         self.heads = nn.ModuleDict({k: nn.Linear(hidden, n) for k, n in HEADS.items()})
         self.value = nn.Linear(hidden, 1)
         self.aux = nn.Linear(hidden, 2)            # will_hit, will_be_hit (next 0.5 s), logits
@@ -123,13 +124,14 @@ class CombatPolicy(nn.Module):
 
 
 def save_policy(policy: CombatPolicy, path: str | Path, meta: dict | None = None) -> None:
-    torch.save({"state_dict": policy.state_dict(), "obs_dim": OBS_DIM, "heads": HEADS,
+    torch.save({"state_dict": policy.state_dict(), "obs_dim": policy.obs_dim, "heads": HEADS,
                 "meta": meta or {}}, str(path))
 
 
 def load_policy(path: str | Path) -> CombatPolicy:
     ck = torch.load(str(path), weights_only=True, map_location="cpu")   # CLAUDE.md: weights only
-    p = CombatPolicy(hidden=ck["state_dict"]["trunk.0.weight"].shape[0])
+    w0 = ck["state_dict"]["trunk.0.weight"]
+    p = CombatPolicy(hidden=w0.shape[0], obs_dim=w0.shape[1])
     p.load_state_dict(ck["state_dict"])
     p.eval()
     return p
@@ -139,9 +141,10 @@ class LearnedEngage(_Base):
     """Drop-in replacement for the scripted `engage` reflex."""
     name = "engage"
 
-    def __init__(self, world: World, bot: Agent, policy: CombatPolicy):
+    def __init__(self, world: World, bot: Agent, policy: CombatPolicy, features=None):
         super().__init__(world, bot)
         self.policy = policy
+        self.features = features          # AdaptiveFeatures for style-adaptive policies
         self.last_aux: dict[str, float] = {}
 
     def tick(self, state: Any = None) -> None:
@@ -157,7 +160,10 @@ class LearnedEngage(_Base):
                 return
             t = hs[0]
             self.params["target"] = t.id
-        acts, info = self.policy.act(observe(self.w, b, t), greedy=True)
+        obs = observe(self.w, b, t)
+        if self.policy.obs_dim > OBS_DIM:
+            obs = np.concatenate([obs, self.features(b, t)])
+        acts, info = self.policy.act(obs, greedy=True)
         apply_action(self.w, b, t, acts[0])
         aux = info["aux"][0]
         self.last_aux = {"will_hit": float(aux[0]), "will_be_hit": float(aux[1])}

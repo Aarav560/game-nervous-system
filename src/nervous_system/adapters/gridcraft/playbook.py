@@ -17,6 +17,7 @@ def parse(text: str) -> dict:
         "opp_hp": r"hp ~(\d+)/", "crit": r"crit_threat (\w+)", "enemies": r"ENV enemies (\d+)",
         "near": r"near (\d+)", "res": r"resource_dist (\w+)", "progress": r"progress (\S+)",
         "goal": r"GOAL (\S+)", "fear": r"fear ([\d.]+)", "hp_loss": r"hp_loss_1s ([\d.]+)",
+        "win_prob": r"win_prob ([\d.]+)", "opp_style": r"opp_style (\w+)",
     }.items():
         m = re.search(pat, text)
         f[key] = m.group(1) if m else None
@@ -24,6 +25,7 @@ def parse(text: str) -> dict:
         f[k] = int(f[k]) if f[k] is not None else 0
     f["opp_dist"] = float(f["opp_dist"]) if f["opp_dist"] else None
     f["fear"] = float(f["fear"]) if f["fear"] else 0.0
+    f["win_prob"] = float(f["win_prob"]) if f["win_prob"] else None
     done = f["progress"] not in (None, "none") and "/" in f["progress"]
     if done:
         have, need = f["progress"].split("/")
@@ -119,6 +121,12 @@ class GridCraftPlaybook:
         dist = f["opp_dist"] if f["opp_dist"] is not None else 99.0
         player = f["opp_kind"] == "player"
         fighting_goal = (f["goal"] or "").startswith("engage") or (f["goal"] or "") == "wait"
+        if player and f["win_prob"] is not None:          # playbook v2: game sense decides
+            if f["win_prob"] >= 0.35:
+                return "engage"                            # winning or even: keep pressure, no retreat
+            if f["gapples"] > 0 and dist > 4.0:
+                return "heal"                              # losing and there is space: eat now
+            return "engage"                                # losing but retreating gives free crits
         if f["hp"] <= 8 and f["gapples"] > 0:
             return "heal" if dist > 4.0 else "disengage"     # get space, then eat
         if not player and f["hp"] <= 5 and f["offhand"] == "no":

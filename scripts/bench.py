@@ -130,13 +130,14 @@ def main() -> None:
     ap.add_argument("--label-fraction", type=float, default=0.0)
     ap.add_argument("--heartbeat", type=float)
     ap.add_argument("--combat-policy", help="GridCraft: learned combat reflex under `engage`")
+    ap.add_argument("--game-sense", help="GridCraft: dir with win-model.pt + opponent-model.pt")
     ap.add_argument("--baseline")
     ap.add_argument("--out")
     a = ap.parse_args()
     spec = game_spec(a.game)
     res = run_suite(a.game, a.mode, a.scenarios or spec.scenarios, a.episodes, a.seed0, a.checkpoint,
                     a.variant, a.temperature, not a.poll_brain, a.label_fraction, heartbeat_s=a.heartbeat,
-                    adapter_kw={"combat_policy": a.combat_policy} if a.combat_policy else None)
+                    adapter_kw={k: v for k, v in (("combat_policy", a.combat_policy), ("game_sense", a.game_sense)) if v} or None)
     if a.baseline:
         res["gate"] = compare(res, json.loads(Path(a.baseline).read_text()))
     for sc, s in res["scenarios"].items():

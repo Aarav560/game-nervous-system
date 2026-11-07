@@ -35,7 +35,7 @@ class GridCraftAdapter(GameAdapter):
 
     def __init__(self, scenario: Scenario | str, seed: int = 0, config: dict | None = None,
                  world: World | None = None, bot_id: str = BOT, owns_world: bool = True,
-                 combat_policy: str | None = None):
+                 combat_policy: str | None = None, game_sense: str | None = None):
         self.cfg = config or load_config()
         self.profile = self.cfg["profile"]
         self.rules = PlayRules.from_config(self.cfg["play_rules"])
@@ -54,7 +54,13 @@ class GridCraftAdapter(GameAdapter):
         self.owns_world = owns_world               # hive: the HiveRuntime steps a shared world
         self.markers: list[tuple[float, float]] = []   # hive danger markers to avoid
         self.deposited = 0
+        self._gs_last = None                # (win_prob, style) for the nearest hostile player
         self.combat_policy = None
+        self.game_sense = None              # (WinModel, AdaptiveFeatures) -> PRED win_prob / opp_style
+        if game_sense:
+            from . import gamesense as gs
+            gdir = Path(game_sense) if Path(game_sense).is_absolute() else CONFIG.parents[2] / game_sense
+            self.game_sense = (gs.load(gdir / "win-model.pt"), gs.AdaptiveFeatures(gs.load(gdir / "opponent-model.pt")))
         path = combat_policy or (self.cfg.get("reflexes") or {}).get("combat_policy")
         if path:
             from .combat import load_policy
@@ -225,8 +231,12 @@ class GridCraftAdapter(GameAdapter):
             res = _q(rd, 1) if rd < 40 else "none"
         env_line = (f"ENV enemies {len(hs)} near {near} allies {self.facts(w).allies} "
                     f"base_dist {base_d} resource_dist {res} progress {self._goal_progress(g)}")
-        pred = tier2.get("pred") or {}
+        pred = dict(tier2.get("pred") or {})
+        if self.game_sense is not None and self._gs_last is not None:
+            pred["win_prob"] = self._gs_last[0]
         pred_line = ("PRED " + " ".join(f"{k} {v:.1f}" for k, v in sorted(pred.items()))) if pred else "PRED none"
+        if self.game_sense is not None and self._gs_last is not None and self._gs_last[1]:
+            pred_line += f" opp_style {self._gs_last[1]}"
         drv = tier2.get("drives") or {}
         drv_line = ("DRIVES " + " ".join(f"{k} {v:.1f}" for k, v in sorted(drv.items()))) if drv else "DRIVES none"
         wm = tier2.get("wm") or []
@@ -293,7 +303,12 @@ class GridCraftAdapter(GameAdapter):
     def _engage(self, target: str | None) -> R._Base:
         if self.combat_policy is not None:
             from .combat import LearnedEngage
-            r = LearnedEngage(self.w, self.bot, self.combat_policy)
+            feats = None
+            if self.combat_policy.obs_dim > 24:
+                from . import gamesense as gs
+                feats = self.game_sense[1] if self.game_sense else gs.AdaptiveFeatures(
+                    gs.load(CONFIG.parents[2] / "checkpoints/opponent-model.pt"))
+            r = LearnedEngage(self.w, self.bot, self.combat_policy, feats)
         else:
             r = R.Engage(self.w, self.bot)
         r.start({"target": target})
@@ -315,6 +330,8 @@ class GridCraftAdapter(GameAdapter):
             self.current.tick()
             if self.current.status() != "running":
                 self.current_choice = ""     # finished reflex: next decision starts a fresh one
+        if self.game_sense is not None and b.alive:
+            self._update_game_sense(w, b)
         if b.alive:
             a = R.autonomic(w, b, self.cfg["autonomic"])
             if a:
@@ -324,6 +341,20 @@ class GridCraftAdapter(GameAdapter):
         if self.owns_world:
             w.step()
         return not self.episode_over()
+
+    def _update_game_sense(self, w: World, b) -> None:
+        import numpy as np
+        from .combat import observe
+        players = [a for a in w.agents.values() if a.alive and a.team != b.team and a.kind == "player"]
+        if not players:
+            self._gs_last = None
+            return
+        o = min(players, key=b.dist)
+        wm, feats = self.game_sense
+        f = feats(b, o)
+        x = np.concatenate([observe(w, b, o), f[:8]]).astype("float32")
+        st = feats.style(o.id)
+        self._gs_last = (round(wm.prob(x), 2), st[0] if st and st[1] >= 0.5 else None)
 
     def episode_over(self) -> bool:
         s, w = self.scenario, self.w
