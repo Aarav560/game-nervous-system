@@ -32,6 +32,22 @@ data has many `reposition` labels from states that differ by a single token (`we
 (engage 0.82, reposition 0.88) hid this: the live state distribution weights these confusable
 states far more than the test split does.
 
+## Attempt 2: all Skirmish data, 2 epochs (`laya-gc-sk-v2`)
+
+All 2,236 Skirmish rows + 300 GridCraft replay rows, 2 epochs, a 10% internal calibration slice
+(about 40 min). Held-out: accuracy 94.8%, acted 96.2%, ECE 0.022. Benchmark
+([`phase7-skirmish-laya-v2.json`](phase7-skirmish-laya-v2.json), same 5 seeds):
+
+| scenario | brain-only | v1 | **v2** |
+|---|---|---|---|
+| hold_out | 40% | 20% | **40%** |
+| gunfight | 40% | 0% | **0%** |
+| supply_run | 60% | 20% | **60%** |
+| overall | 47% | 13% | 33% |
+
+v2 matches the brain on 2 of 3 scenarios. The gate still fails on **gunfight**, the only
+regression. `use_ability:reload` stays at 0% accuracy: it has only 6 training examples.
+
 **Next step:** more Skirmish data and epochs (the GridCraft checkpoint needed 3.5k rows × 2 epochs),
 plus a check of live-policy agreement on the first rollout before trusting test accuracy. No tier-1/2
 change is needed for that.

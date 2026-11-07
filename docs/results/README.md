@@ -18,4 +18,4 @@ API key**.
 | 4+ | PvP dataset, game sense, style adaptation | 12k rounds; win model AUC 0.91; style identified 91.5% after 1 s; counter-pick 85.8% vs 78.1% | [pvp-gamesense-adaptation.md](pvp-gamesense-adaptation.md) |
 | 5 | escalations fall over 3 sleep cycles, no regression | ❌ candidates got worse and were rejected; causes found | [phase5-sleep.md](phase5-sleep.md) |
 | 6 | 5 bots, one brain, base building | ✅ 100%, claims halve the time | [phase6-hive.md](phase6-hive.md) |
-| 7 | second game, basic benchmark, no tier 1–2 changes | ◐ adapter-only works (brain-only 47%); Laya regresses (13%) | [phase7-second-game.md](phase7-second-game.md) |
+| 7 | second game, basic benchmark, no tier 1–2 changes | ◐ adapter-only works (brain-only 47%); Laya v2 matches it on 2 of 3 scenarios but fails the gunfight (33% overall) | [phase7-second-game.md](phase7-second-game.md) |

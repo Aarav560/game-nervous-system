@@ -84,4 +84,4 @@ Each phase has an exit criterion. Don't start the next phase until the current o
 - [x] Reuse Laya (with `GAME` line) and the brain unchanged.
 
 **Exit:** the second game reaches a basic benchmark without changes to tiers 1–2 code.
-**Result:** the adapter-only part holds (no tier 1–2 changes; brain-only 47% success). Reusing Laya regresses (13%): under-trained on 1.2k Skirmish rows. → [results](results/phase7-second-game.md)
+**Result:** the adapter-only part holds (no tier 1–2 changes; brain-only 47% success). Reusing Laya: v1 (1.2k rows) regressed to 13%; v2 (all 2.2k rows, 2 epochs) matches the brain on hold_out and supply_run but still fails the gunfight (0/5 vs 2/5). → [results](results/phase7-second-game.md)
