@@ -83,3 +83,27 @@ class AdaptiveFeatures:
 
 def full_obs(w: World, me: Agent, opp: Agent, feats: AdaptiveFeatures) -> np.ndarray:
     return np.concatenate([observe(w, me, opp), feats(me, opp)])
+
+
+class StyleSelector:
+    """Adaptation by counter-picking: identify the opponent's style, then switch to the policy
+    with the best record against that style in the replay dataset (card.json win table)."""
+
+    def __init__(self, opponent_model: OpponentModel, players: dict, win_table: dict,
+                 default: str, min_conf: float = 0.6):
+        self.feats = AdaptiveFeatures(opponent_model)
+        self.players = players                      # name -> act(w, me, opp, obs) -> action
+        self.best = {}
+        for style in STYLES:
+            cands = {p: win_table.get(f"{p}/{style}", 0.0) for p in players}
+            self.best[style] = max(cands, key=cands.get)
+        self.default, self.min_conf = default, min_conf
+        self.current = default
+
+    def act(self, w: World, me: Agent, opp: Agent) -> dict:
+        from .combat import observe
+        self.feats(me, opp)
+        st = self.feats.style(opp.id)
+        if st and st[1] >= self.min_conf:
+            self.current = self.best[st[0]]
+        return self.players[self.current](w, me, opp, observe(w, me, opp))
