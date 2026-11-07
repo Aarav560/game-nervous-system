@@ -30,6 +30,8 @@ def main() -> None:
     ap.add_argument("--p3-heartbeat", type=float, default=30.0)
     ap.add_argument("--p2", help="reuse an existing Phase 2-wiring bench JSON")
     ap.add_argument("--out", default=str(ROOT / "docs/results/phase3-event-driven.json"))
+    ap.add_argument("--label-fraction", type=float, default=0.0,
+                    help="DAgger spot checks (a training cost); 0 measures runtime brain usage only")
     a = ap.parse_args()
     model = laya_model(a.checkpoint)                       # one cache shared by both runs
     if a.p2:
@@ -37,11 +39,11 @@ def main() -> None:
     else:
         p2 = bench.run_suite("gridcraft", "laya", bench.game_spec("gridcraft").scenarios, a.episodes,
                              checkpoint=a.checkpoint, event_driven=False, heartbeat_s=a.p2_heartbeat,
-                             label_fraction=0.05, model=model, run_id="phase3-p2-polled")
+                             label_fraction=a.label_fraction, model=model, run_id="phase3-p2-polled")
         Path(a.out).with_name("phase2-laya.json").write_text(json.dumps(p2, indent=1, default=str) + "\n")
     p3 = bench.run_suite("gridcraft", "laya", bench.game_spec("gridcraft").scenarios, a.episodes,
                          checkpoint=a.checkpoint, event_driven=True, heartbeat_s=a.p3_heartbeat,
-                         label_fraction=0.05, model=model, run_id="phase3-p3-event")
+                         label_fraction=a.label_fraction, model=model, run_id="phase3-p3-event")
     Path(a.out).with_name("phase3-laya-event-driven.json").write_text(json.dumps(p3, indent=1, default=str) + "\n")
     t2, t3 = p2["overall"]["brain_tokens_per_hour"], p3["overall"]["brain_tokens_per_hour"]
     gate = bench.compare(p3, p2)

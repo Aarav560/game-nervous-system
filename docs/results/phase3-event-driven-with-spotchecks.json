@@ -1,0 +1,58 @@
+{
+ "p2_polled": {
+  "overall": {
+   "success_rate": 0.95,
+   "deaths_per_episode": 0.05,
+   "acted_frac": 0.9980563620408676,
+   "escalations_per_hour": 30.6931326434619,
+   "brain_calls_per_hour": 7826.351812358769,
+   "brain_tokens_per_hour": 624441.5824010415
+  },
+  "heartbeat_s": 2.0,
+  "event_driven": false
+ },
+ "p3_event_driven": {
+  "overall": {
+   "success_rate": 0.95,
+   "deaths_per_episode": 0.05,
+   "acted_frac": 0.9980563620408676,
+   "escalations_per_hour": 30.6931326434619,
+   "brain_calls_per_hour": 6532.798377557272,
+   "brain_tokens_per_hour": 532722.522199201
+  },
+  "heartbeat_s": 30.0,
+  "event_driven": true
+ },
+ "per_scenario": {
+  "gather_logs": {
+   "p2_success": 1.0,
+   "p3_success": 1.0,
+   "p2_tokens_per_hour": 336382.07728848374,
+   "p3_tokens_per_hour": 221250.48144819617
+  },
+  "survive": {
+   "p2_success": 1.0,
+   "p3_success": 1.0,
+   "p2_tokens_per_hour": 360607.2,
+   "p3_tokens_per_hour": 230592.0
+  },
+  "duel": {
+   "p2_success": 0.8,
+   "p3_success": 0.8,
+   "p2_tokens_per_hour": 1421107.438016529,
+   "p3_tokens_per_hour": 1421107.438016529
+  },
+  "diamonds": {
+   "p2_success": 1.0,
+   "p3_success": 1.0,
+   "p2_tokens_per_hour": 379669.6142991534,
+   "p3_tokens_per_hour": 257940.16933207904
+  }
+ },
+ "token_drop": 0.14688173047216257,
+ "scores_equal_gate": {
+  "regressions": [],
+  "passed": true
+ },
+ "exit_criterion_passed": false
+}
