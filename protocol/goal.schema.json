@@ -1,23 +1,83 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "goal.schema.json",
+  "$id": "goal.v0.schema.json",
   "title": "Goal",
   "description": "Brain -> Laya. Intent with constraints, priorities and expiry (Architecture §4, §11).",
   "type": "object",
-  "required": ["bot_id", "game", "episode_id", "t", "goal_id", "intent", "expires_at", "on_fail"],
+  "required": [
+    "schema_version",
+    "bot_id",
+    "game",
+    "episode_id",
+    "t",
+    "goal_id",
+    "intent",
+    "expires_at",
+    "on_fail"
+  ],
   "properties": {
-    "bot_id": {"type": "string"},
-    "game": {"type": "string"},
-    "episode_id": {"type": "string"},
-    "t": {"type": "number", "description": "game time, seconds"},
-    "wall_t": {"type": "number"},
-    "goal_id": {"type": "string"},
-    "intent": {"type": "string", "description": "shared vocabulary verb, e.g. engage, gather:wood"},
-    "target": {"type": ["string", "null"]},
-    "constraints": {"type": "array", "items": {"type": "string"}},
-    "priorities": {"type": "array", "items": {"type": "string"}, "description": "ordered, highest first"},
-    "valid_while": {"type": "array", "items": {"type": "string"}, "description": "goal suspends as soon as any condition fails"},
-    "expires_at": {"type": "number", "description": "game time after which the goal is stale"},
-    "on_fail": {"type": "string", "description": "vocabulary verb to fall back to"}
-  }
+    "schema_version": {
+      "const": "0",
+      "description": "protocol version; bump on any schema change"
+    },
+    "bot_id": {
+      "type": "string"
+    },
+    "game": {
+      "type": "string"
+    },
+    "episode_id": {
+      "type": "string"
+    },
+    "t": {
+      "type": "number",
+      "description": "game time, seconds"
+    },
+    "wall_t": {
+      "type": "number",
+      "description": "wall-clock unix time, seconds"
+    },
+    "goal_id": {
+      "type": "string"
+    },
+    "intent": {
+      "type": "string",
+      "description": "shared vocabulary verb, e.g. engage, gather:wood"
+    },
+    "target": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "priorities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "ordered, highest first"
+    },
+    "valid_while": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "goal suspends as soon as any condition fails"
+    },
+    "expires_at": {
+      "type": "number",
+      "description": "game time after which the goal is stale"
+    },
+    "on_fail": {
+      "type": "string",
+      "description": "vocabulary verb to fall back to"
+    }
+  },
+  "additionalProperties": false
 }

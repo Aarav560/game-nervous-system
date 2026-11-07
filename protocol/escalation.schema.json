@@ -1,19 +1,69 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "escalation.schema.json",
+  "$id": "escalation.v0.schema.json",
   "title": "Escalation",
   "description": "Laya -> Brain when unsure, goal impossible, or drives conflict (Architecture §5, §11).",
   "type": "object",
-  "required": ["bot_id", "game", "episode_id", "t", "goal_id", "reason", "summary", "fallback_action"],
+  "required": [
+    "schema_version",
+    "bot_id",
+    "game",
+    "episode_id",
+    "t",
+    "goal_id",
+    "reason",
+    "summary",
+    "fallback_action"
+  ],
   "properties": {
-    "bot_id": {"type": "string"},
-    "game": {"type": "string"},
-    "episode_id": {"type": "string"},
-    "t": {"type": "number"},
-    "goal_id": {"type": "string"},
-    "reason": {"enum": ["low_confidence", "small_margin", "chose_escalate", "goal_impossible", "goal_suspended", "drive_conflict", "surprise"]},
-    "summary": {"type": "string", "description": "world summary for the brain"},
-    "distribution": {"type": "object", "additionalProperties": {"type": "number"}},
-    "fallback_action": {"type": "string", "description": "what Laya is doing while waiting"}
-  }
+    "schema_version": {
+      "const": "0",
+      "description": "protocol version; bump on any schema change"
+    },
+    "bot_id": {
+      "type": "string"
+    },
+    "game": {
+      "type": "string"
+    },
+    "episode_id": {
+      "type": "string"
+    },
+    "t": {
+      "type": "number"
+    },
+    "wall_t": {
+      "type": "number",
+      "description": "wall-clock unix time, seconds"
+    },
+    "goal_id": {
+      "type": "string"
+    },
+    "reason": {
+      "enum": [
+        "low_confidence",
+        "small_margin",
+        "chose_escalate",
+        "goal_impossible",
+        "goal_suspended",
+        "drive_conflict",
+        "surprise"
+      ]
+    },
+    "summary": {
+      "type": "string",
+      "description": "world summary for the brain"
+    },
+    "distribution": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "fallback_action": {
+      "type": "string",
+      "description": "what Laya is doing while waiting"
+    }
+  },
+  "additionalProperties": false
 }

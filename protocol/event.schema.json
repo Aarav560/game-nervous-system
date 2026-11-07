@@ -1,18 +1,60 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "event.schema.json",
+  "$id": "event.v0.schema.json",
   "title": "Event",
   "description": "Salience filter or forward model -> Brain/Laya. Includes Surprise and Outcome kinds (Architecture §7, §10).",
   "type": "object",
-  "required": ["bot_id", "game", "episode_id", "t", "kind", "salience"],
+  "required": [
+    "schema_version",
+    "bot_id",
+    "game",
+    "episode_id",
+    "t",
+    "kind",
+    "salience"
+  ],
   "properties": {
-    "bot_id": {"type": "string"},
-    "game": {"type": "string"},
-    "episode_id": {"type": "string"},
-    "t": {"type": "number"},
-    "kind": {"enum": ["event", "surprise", "outcome", "correction", "override", "kill"]},
-    "salience": {"type": "number", "minimum": 0, "maximum": 1},
-    "description": {"type": "string"},
-    "data": {"type": "object"}
-  }
+    "schema_version": {
+      "const": "0",
+      "description": "protocol version; bump on any schema change"
+    },
+    "bot_id": {
+      "type": "string"
+    },
+    "game": {
+      "type": "string"
+    },
+    "episode_id": {
+      "type": "string"
+    },
+    "t": {
+      "type": "number"
+    },
+    "wall_t": {
+      "type": "number",
+      "description": "wall-clock unix time, seconds"
+    },
+    "kind": {
+      "enum": [
+        "event",
+        "surprise",
+        "outcome",
+        "correction",
+        "override",
+        "kill"
+      ]
+    },
+    "salience": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "description": {
+      "type": "string"
+    },
+    "data": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
 }

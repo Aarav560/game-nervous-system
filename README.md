@@ -22,11 +22,14 @@ First testbed: **Minecraft**, building on the existing Baritone/AltoClef bot arm
 
 ```
 docs/                 design docs
-protocol/             JSON schemas for messages between tiers
+protocol/             JSON schemas for messages between tiers (v0, frozen)
+scripts/              benchmark harness (bench_laya.py: Phase 0 latency)
+tests/                pytest suite (protocol/schema agreement, Laya wrapper, escalation)
 configs/games/        per-game config: latency profile, play rules, rewards, options
 src/nervous_system/   Python package skeleton (interfaces only, no implementation yet)
   brain/              tier 1 — LLM planner interface
-  laya/               tier 2 — decision model client, escalation, calibration
+  laya/               tier 2 — Laya decision model wrapper, escalation, calibration
+  vocabulary.py       shared action vocabulary (Architecture §9)
   reflex/             tier 3 — reflex controller contract
   modules/            forward model, salience, memory, drives, kill switch
   adapters/           GameAdapter base + Minecraft stub
@@ -36,7 +39,17 @@ CLAUDE.md             instructions for the Claude Code session that builds this
 
 ## Status
 
-Design + scaffold only. Start at [Roadmap Phase 0](docs/ROADMAP.md#phase-0--scaffold-and-measurements).
+Phase 0 in progress — see [Roadmap](docs/ROADMAP.md) and [results](docs/results/).
+
+## Setup
+
+```bash
+python -m venv .venv && . .venv/bin/activate
+pip install torch --index-url https://download.pytorch.org/whl/cpu   # or a CUDA build on a GPU box
+pip install -e '.[laya,dev]'
+pytest
+python scripts/bench_laya.py          # Phase 0 Laya latency benchmark
+```
 
 ## Rules
 
