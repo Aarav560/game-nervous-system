@@ -5,8 +5,8 @@
    "deaths_per_episode": 0.05,
    "acted_frac": 0.9980563620408676,
    "escalations_per_hour": 30.6931326434619,
-   "brain_calls_per_hour": 7826.351812358769,
-   "brain_tokens_per_hour": 624441.5824010415
+   "brain_calls_per_hour": 5940.208761952566,
+   "brain_tokens_per_hour": 388891.0235739216
   },
   "heartbeat_s": 2.0,
   "event_driven": false
@@ -17,8 +17,8 @@
    "deaths_per_episode": 0.05,
    "acted_frac": 0.9980563620408676,
    "escalations_per_hour": 30.6931326434619,
-   "brain_calls_per_hour": 6532.798377557272,
-   "brain_tokens_per_hour": 532722.522199201
+   "brain_calls_per_hour": 4646.655327151069,
+   "brain_tokens_per_hour": 297171.9633720811
   },
   "heartbeat_s": 30.0,
   "event_driven": true
@@ -27,32 +27,39 @@
   "gather_logs": {
    "p2_success": 1.0,
    "p3_success": 1.0,
-   "p2_tokens_per_hour": 336382.07728848374,
-   "p3_tokens_per_hour": 221250.48144819617
+   "p2_tokens_per_hour": 123395.55783797664,
+   "p3_tokens_per_hour": 8263.961997689048
   },
   "survive": {
    "p2_success": 1.0,
    "p3_success": 1.0,
-   "p2_tokens_per_hour": 360607.2,
-   "p3_tokens_per_hour": 230592.0
+   "p2_tokens_per_hour": 133317.6,
+   "p3_tokens_per_hour": 3302.3999999999996
   },
   "duel": {
    "p2_success": 0.8,
    "p3_success": 0.8,
-   "p2_tokens_per_hour": 1421107.438016529,
-   "p3_tokens_per_hour": 1421107.438016529
+   "p2_tokens_per_hour": 1132363.6363636362,
+   "p3_tokens_per_hour": 1132363.6363636362
   },
   "diamonds": {
    "p2_success": 1.0,
    "p3_success": 1.0,
-   "p2_tokens_per_hour": 379669.6142991534,
-   "p3_tokens_per_hour": 257940.16933207904
+   "p2_tokens_per_hour": 166487.3000940734,
+   "p3_tokens_per_hour": 44757.855126999064
   }
  },
- "token_drop": 0.14688173047216257,
+ "token_drop": 0.2358477173346385,
  "scores_equal_gate": {
   "regressions": [],
   "passed": true
  },
- "exit_criterion_passed": false
+ "exit_criterion_passed": false,
+ "pooled_tokens_per_hour": {
+  "p2_polled": 146682.57318528034,
+  "p3_event_driven": 21781.040653390843,
+  "drop": 0.8515090090090089,
+  "note": "total brain tokens / total game hours over all 20 episodes; the per-scenario mean is dominated by 5 s duel episodes whose single planning call dominates their rate in both setups"
+ },
+ "exit_criterion_passed_pooled": true
 }
