@@ -106,6 +106,9 @@ def main() -> None:
     ap.add_argument("--eval-only", action="store_true")
     ap.add_argument("--eval-max", type=int, default=600)
     ap.add_argument("--variant", default="int8", choices=["fp32", "int8"])
+    ap.add_argument("--internal-calib-frac", type=float, default=0.05,
+                    help="slice laya.train holds out to refit the checkpoint's own temperatures")
+    ap.add_argument("--internal-calib-max", type=int, default=200)
     ap.add_argument("--init", help="start from this fine-tuned checkpoint instead of --base")
     ap.add_argument("--threads", type=int, default=os.cpu_count())
     a = ap.parse_args()
@@ -123,7 +126,7 @@ def main() -> None:
             train_path.write_text("".join(json.dumps(r) + "\n" for r in rows))
         cfg = TrainConfig(epochs=a.epochs, micro_batch=a.micro_batch, grad_accum=a.grad_accum, loss=a.loss,
                           shuffle_options=("choice",), max_len=a.max_len, freeze_encoder=a.freeze_encoder,
-                          log_every=20, calib_frac=0.05, calib_max=200)
+                          log_every=20, calib_frac=a.internal_calib_frac, calib_max=a.internal_calib_max)
         t0 = time.time()
         summary["finetune"] = finetune(str(train_path), a.init or a.base, a.out, cfg, device="cpu")
         summary["train_s"] = round(time.time() - t0, 1)

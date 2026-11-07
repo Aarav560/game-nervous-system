@@ -160,7 +160,8 @@ def main() -> None:
         replay_pool += [json.loads(l) for l in open(data / "train.jsonl")][: a.dagger]
         ckpt = str(ROOT / f"checkpoints/laya-gc-sleep{c}")
         run([PY, "scripts/train_laya.py", "--init", champion, "--data", str(data), "--out", ckpt,
-             "--epochs", "1", "--threads", str(a.threads)], ROOT / f"logs/sleep-{c}-train.log")
+             "--epochs", "1", "--threads", str(a.threads), "--internal-calib-frac", "0.2",
+             "--internal-calib-max", "400"], ROOT / f"logs/sleep-{c}-train.log")
         cal = json.loads((Path(ckpt) / "gns_calibration.json").read_text())
         bench_out = ROOT / f"docs/results/phase5-sleep{c}-bench.json"
         run([PY, "scripts/bench.py", "--game", a.game, "--mode", "laya", "--checkpoint", ckpt,

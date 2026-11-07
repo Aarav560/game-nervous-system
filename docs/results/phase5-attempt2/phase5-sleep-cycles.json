@@ -1,0 +1,114 @@
+{
+ "history": [
+  {
+   "cycle": 0,
+   "checkpoint": "checkpoints/laya-gc-v1",
+   "escalations_per_hour": 30.6931326434619,
+   "acted_frac": 0.9980563620408676,
+   "success_rate": 0.95
+  },
+  {
+   "cycle": 1,
+   "checkpoint": "/home/user/game-nervous-system/checkpoints/laya-gc-sleep1",
+   "review": {
+    "corrections": 1133,
+    "dagger": 800,
+    "disagree": 29
+   },
+   "dataset": {
+    "train": 1914,
+    "calib": 396,
+    "test": 473,
+    "new_unique": 983,
+    "replay": 1200,
+    "anchor_calib": 300,
+    "anchor_test": 300
+   },
+   "temperature": 0.8276994168925147,
+   "test_calibrated": {
+    "n": 473,
+    "accuracy": 0.9365750528541226,
+    "ece": 0.03560297115473547,
+    "brier": 0.10901580674048195,
+    "acted_frac": 0.959830866807611,
+    "accuracy_when_acted": 0.947136563876652
+   },
+   "escalations_per_hour": 183.99200828520756,
+   "acted_frac": 0.9839746046269917,
+   "success_rate": 0.8500000000000001,
+   "gate": {
+    "regressions": [
+     "diamonds: success 0.80 < 1.00",
+     "diamonds: deaths 0.20 > 0.00"
+    ],
+    "passed": false
+   },
+   "gate_vs_champion": {
+    "regressions": [
+     "survive: success 0.80 < 1.00",
+     "survive: deaths 0.20 > 0.00",
+     "diamonds: success 0.80 < 1.00",
+     "diamonds: deaths 0.20 > 0.00"
+    ],
+    "passed": false
+   },
+   "champion_escalations_per_hour": 30.6931326434619,
+   "promoted": false,
+   "wall_s": 1932
+  },
+  {
+   "cycle": 2,
+   "checkpoint": "/home/user/game-nervous-system/checkpoints/laya-gc-sleep2",
+   "review": {
+    "corrections": 1112,
+    "dagger": 800,
+    "disagree": 129
+   },
+   "dataset": {
+    "train": 2047,
+    "calib": 372,
+    "test": 402,
+    "new_unique": 1021,
+    "replay": 1200,
+    "anchor_calib": 300,
+    "anchor_test": 300
+   },
+   "temperature": 1.1999658448290127,
+   "test_calibrated": {
+    "n": 402,
+    "accuracy": 0.8930348258706468,
+    "ece": 0.06020689232308391,
+    "brier": 0.17194505892771342,
+    "acted_frac": 0.9228855721393034,
+    "accuracy_when_acted": 0.9245283018867925
+   },
+   "escalations_per_hour": 450.5523076246896,
+   "acted_frac": 0.8213950978868653,
+   "success_rate": 0.4,
+   "gate": {
+    "regressions": [
+     "duel: success 0.00 < 0.40",
+     "duel: deaths 1.00 > 0.60",
+     "diamonds: success 0.00 < 1.00",
+     "diamonds: deaths 0.80 > 0.00"
+    ],
+    "passed": false
+   },
+   "gate_vs_champion": {
+    "regressions": [
+     "survive: success 0.60 < 1.00",
+     "survive: deaths 0.40 > 0.00",
+     "duel: success 0.00 < 0.80",
+     "duel: deaths 1.00 > 0.20",
+     "diamonds: success 0.00 < 1.00",
+     "diamonds: deaths 0.80 > 0.00"
+    ],
+    "passed": false
+   },
+   "champion_escalations_per_hour": 30.6931326434619,
+   "promoted": false,
+   "wall_s": 3007
+  }
+ ],
+ "skills": "gather:iron_ore 100% of 45; return:base 100% of 45; build:iron_pickaxe 100% of 45; gather:wood 100% of 45"
+}
