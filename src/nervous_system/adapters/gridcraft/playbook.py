@@ -43,6 +43,8 @@ class GridCraftPlaybook:
             return [{"intent": "gather:wood", "constraints": ["amount 64"], "priorities": ["survive", "finish_task"],
                      "on_fail": "return:base"},
                     {"intent": "return:base", "on_fail": "disengage"}]
+        if "hive" in m:
+            return self._hive_plan(world_summary)
         if "survive" in m:
             return [{"intent": "wait", "priorities": ["survive"], "on_fail": "disengage"}]
         if "1v1" in m or "duel" in m:
@@ -59,6 +61,42 @@ class GridCraftPlaybook:
         if "base" in m:
             return [{"intent": "return:base", "on_fail": "disengage"}]
         return [{"intent": "wait", "on_fail": "disengage"}]
+
+    CAPACITY = {"log": 20, "cobblestone": 15}
+    RES = {"log": "gather:wood", "cobblestone": "gather:stone"}
+
+    def __init__(self, coordinate: bool = True):
+        self.coordinate = coordinate            # False = ablation: ignore hive claims
+
+    def _hive_plan(self, summary: str) -> list[dict]:
+        m = re.search(r"blueprint wall: (.*)", summary)
+        if not m or m.group(1).strip() == "built":
+            return [{"intent": "wait", "on_fail": "disengage"}]
+        need = {k: int(v) for k, v in re.findall(r"(\w+) (\d+)", m.group(1).replace("need", ""))}
+        inv = dict((k, int(v)) for k, v in re.findall(r"(\w+) x(\d+)", summary))
+        carrying = {k: min(inv.get(k, 0), n) for k, n in need.items()}
+        if sum(carrying.values()) and (sum(carrying.values()) >= 10 or all(
+                carrying[k] >= n for k, n in need.items() if n)):
+            return [{"intent": "build:wall", "on_fail": "return:base"}]
+        claimed = {k: 0 for k in need}
+        if self.coordinate:
+            me = re.search(r"\[bot (\w+)\]", summary)
+            me = me.group(1) if me else None
+            for bot, task in re.findall(r"(\w+):((?:gather|build):\w+)", summary.split("hive claims:")[-1].split("\n")[0]):
+                if bot == me:
+                    continue
+                for k, t in self.RES.items():
+                    if task == t and k in claimed:
+                        claimed[k] += self.CAPACITY[k]
+        gap = {k: need[k] - claimed[k] - carrying[k] for k in need}
+        k = max(gap, key=gap.get)
+        if gap[k] <= 0 and not self.coordinate:
+            k = "log"
+        if gap[k] <= 0:
+            k = max(need, key=need.get)
+        amount = inv.get(k, 0) + min(self.CAPACITY[k], max(1, need[k] - carrying[k]))
+        return [{"intent": self.RES[k], "constraints": [f"amount {amount}"], "on_fail": "return:base"},
+                {"intent": "build:wall", "on_fail": "return:base"}]
 
     def label(self, text: str, options: list[str]) -> str:
         f = parse(text)

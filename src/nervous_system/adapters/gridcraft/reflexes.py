@@ -72,7 +72,14 @@ class Gather(_Base):
         b.clear_controls()
         kind = self.params["block"]
         if b.mine_cell is None or b.mine_cell not in self.w.blocks:
-            cell, _ = self.w.nearest_block(b.x, b.y, kind, radius=self.params.get("radius", 1e9))
+            avoid = self.params.get("avoid") or []
+            if avoid:                                   # hive danger markers (pheromones)
+                cells = sorted(((c, math.hypot(c[0] + 0.5 - b.x, c[1] + 0.5 - b.y))
+                                for c, (k, _) in self.w.blocks.items() if k == kind), key=lambda x: x[1])
+                cell = next((c for c, _ in cells if all(math.hypot(c[0] - mx, c[1] - my) > 8
+                                                        for mx, my in avoid)), cells[0][0] if cells else None)
+            else:
+                cell, _ = self.w.nearest_block(b.x, b.y, kind, radius=self.params.get("radius", 1e9))
             if cell is None:
                 self._status = "failed"
                 return
@@ -226,6 +233,19 @@ class Craft(_Base):
         bx, by = self.w.places["base"]
         if self._goto(bx, by, stop=2.0):
             self._status = "succeeded" if self.w.craft(b, self.params["item"]) else "failed"
+
+
+class Deposit(_Base):
+    """Carry materials to base and hand them over for a blueprint."""
+    name = "build"
+
+    def tick(self, state: Any = None) -> None:
+        b = self.bot
+        b.clear_controls()
+        bx, by = self.w.places["base"]
+        if self._goto(bx, by, stop=2.0):
+            self.w.deposit(b, self.params["structure"])
+            self._status = "succeeded"
 
 
 def autonomic(world: World, bot: Agent, cfg: dict) -> str | None:

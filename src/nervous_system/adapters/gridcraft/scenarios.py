@@ -107,4 +107,31 @@ def diamonds() -> Scenario:
                     lambda w: _bot(w).count("diamond") >= 1, lambda w: not _bot(w).alive)
 
 
+def build_base(n_bots: int = 5) -> Scenario:
+    """Hive scenario (Phase 6): bots must deliver 60 logs + 30 cobblestone to build the base wall."""
+    ids = [BOT] + [f"bot{i}" for i in range(1, n_bots)]
+
+    def setup(w: World) -> None:
+        w.places["base"] = (48.0, 48.0)
+        for i, bid in enumerate(ids):
+            ang = 2 * math.pi * i / n_bots
+            _player(w, 48 + 2 * math.cos(ang), 48 + 2 * math.sin(ang),
+                    {"damage": 6.0, "armor": 0.4, "items": {"pickaxe": 1, "bread": 6, "golden_apple": 2}},
+                    id_=bid, team="bot")
+        _forest(w, 30, 48, 16, 4, 14)
+        rng = w.rng
+        placed = 0
+        while placed < 45:
+            x, y = int(rng.uniform(56, 76)), int(rng.uniform(36, 62))
+            if (x, y) not in w.blocks:
+                w.place_block(x, y, "stone", 1)
+                placed += 1
+        w.structures["wall"] = {"need": {"log": 60, "cobblestone": 30}, "have": {}, "built": False}
+        w.spawner = {"kind": "zombie", "every_s": 10.0, "max": 3, "near": ids, "rmin": 14, "rmax": 22}
+
+    return Scenario("build_base", "build the base wall with the hive", 400.0, setup,
+                    lambda w: w.structures["wall"]["built"],
+                    lambda w: not any(w.agents[i].alive for i in ids if i in w.agents))
+
+
 SCENARIOS = {"gather_logs": gather_logs, "survive": survive, "duel": duel, "diamonds": diamonds}

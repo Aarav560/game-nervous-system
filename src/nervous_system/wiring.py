@@ -68,6 +68,10 @@ def laya_model(checkpoint: str, variant: str = "int8", calibration: float | None
         m.name = f"{m.checkpoint}:{variant}"
         _LAYA_CACHE[key] = m
     model: DecisionModel = _LAYA_CACHE[key]
+    cal_file = Path(checkpoint) / "gns_calibration.json"
+    if calibration is None and cal_file.exists():
+        import json
+        calibration = json.loads(cal_file.read_text())["temperature"]
     if calibration and abs(calibration - 1.0) > 1e-6:
         model = CalibratedModel(model, TemperatureCalibrator(calibration))
     return CachedDecisionModel(model) if cache else model

@@ -54,14 +54,37 @@ function logIds () {
 }
 
 async function gotoNear (pos, range, my) {
+  let noPath = false
+  const onPath = r => { if (r.status === 'noPath' || r.status === 'timeout') noPath = true }
+  bot.on('path_update', onPath)
   bot.pathfinder.setGoal(new goals.GoalNear(pos.x, pos.y, pos.z, range))
-  const deadline = Date.now() + 20000
-  while (gen === my && Date.now() < deadline) {
-    if (bot.entity.position.distanceTo(pos) <= range + 0.6) break
-    if (!bot.pathfinder.isMoving() && bot.entity.position.distanceTo(pos) <= range + 1.5) break
+  const deadline = Date.now() + 15000
+  let lastD = Infinity
+  let stall = 0
+  while (gen === my && Date.now() < deadline && !noPath) {
+    const d = bot.entity.position.distanceTo(pos)
+    if (d <= range + 0.6) break
+    if (!bot.pathfinder.isMoving() && d <= range + 1.5) break
+    stall = d < lastD - 0.05 ? 0 : stall + 1
+    lastD = Math.min(lastD, d)
+    if (stall > 60) { noPath = true; break } // ~6 s without progress
     await bot.waitForTicks(2)
   }
+  bot.removeListener('path_update', onPath)
   bot.pathfinder.setGoal(null)
+  if (gen === my && bot.entity.position.distanceTo(pos) > range + 1.5) {
+    // fallback: walk straight at it, jumping over anything in the way
+    ev('path_fallback', { reason: noPath ? 'no_path' : 'timeout', dist: bot.entity.position.distanceTo(pos) })
+    const end = Date.now() + 8000
+    while (gen === my && Date.now() < end && bot.entity.position.distanceTo(pos) > range + 0.6) {
+      await bot.lookAt(pos.offset(0, 1.6, 0), true)
+      bot.setControlState('forward', true)
+      bot.setControlState('sprint', true)
+      bot.setControlState('jump', bot.entity.isCollidedHorizontally)
+      await bot.waitForTicks(2)
+    }
+    bot.clearControlStates()
+  }
 }
 
 async function collectDrops (my) {

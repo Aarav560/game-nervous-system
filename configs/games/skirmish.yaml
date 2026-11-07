@@ -1,0 +1,30 @@
+# Skirmish adapter config (Phase 7 second game; this repo's own arena shooter simulator).
+game: skirmish
+profile: realtime_twitch
+tick_hz: 20
+combat_radius: 18.0
+
+brain:
+  heartbeat_s: 10
+  latency_s: 2.0
+
+laya:
+  checkpoint: laya-multilingual
+  cadence_ms: 100
+  act_threshold: 0.75
+  min_margin: 0.15
+  max_state_tokens: 350
+
+play_rules:
+  allowed: [singleplayer]
+  permitted_servers: []
+
+reward:
+  damage_taken: -0.2
+  damage_dealt: 0.1
+  death: -20.0
+
+option_sets:
+  combat: [engage, disengage, heal, reposition, "use_ability:reload", escalate]
+  gathering: [continue, "return:spawn", disengage, heal, explore, escalate]
+  travel: [continue, reposition, disengage, wait, escalate]

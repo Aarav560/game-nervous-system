@@ -157,7 +157,10 @@ def main() -> None:
                 "SELECT description FROM events WHERE episode_id=? AND kind IN ('event','override') ORDER BY id",
                 (hdr["episode_id"],))][:30],
             "kill_switch": {"tripped": kill.tripped, "reason": kill.reason},
-            "log": str((ROOT / "logs" / run_id).relative_to(ROOT))}
+            "log": str((ROOT / "logs" / run_id).relative_to(ROOT)),
+            "bridge_events": [e for e in adapter.client.events if e.get("kind") not in ("health", "dug", "collect")][-30:],
+            "bridge_event_counts": {k: sum(1 for e in adapter.client.events if e.get("kind") == k)
+                                    for k in sorted({e.get("kind") for e in adapter.client.events})}}
         adapter.disconnect()
         log.close()
         report["exit_criterion_passed"] = bool(res["success"])

@@ -27,7 +27,7 @@ class RuleSalience(SalienceFilter):
         out: list[Event] = []
         if prev is None:
             return out
-        prev_ids = {e.id for e in prev.entities}
+        prev_ids = {e.id for e in prev.hostiles(self.near)}     # newly *near*, not just newly seen
         for e in f.hostiles(self.near):
             if e.id not in prev_ids:
                 s = 0.5 + 0.3 * (e.kind == "player") + 0.2 * (1 - e.dist(f.x, f.y) / self.near)

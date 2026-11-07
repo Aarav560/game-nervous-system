@@ -30,13 +30,15 @@ TOLERANCE = {"success_rate": 0.10, "deaths_per_episode": 0.10}
 def run_suite(game: str, mode: str, scenarios: list[str], episodes: int, seed0: int = 1000,
               checkpoint: str | None = None, variant: str = "int8", temperature: float | None = None,
               event_driven: bool = True, label_fraction: float = 0.0, log_root: Path | None = None,
-              run_id: str | None = None, quiet: bool = False) -> dict:
+              run_id: str | None = None, quiet: bool = False, heartbeat_s: float | None = None,
+              model=None) -> dict:
     spec = game_spec(game)
     run_id = run_id or time.strftime(f"{game}-{mode}-%Y%m%dT%H%M%S")
     log = ExperienceLog(log_root or ROOT / "logs" / run_id)
-    model = laya_model(checkpoint, variant, temperature) if mode == "laya" else None
+    if model is None and mode == "laya":
+        model = laya_model(checkpoint, variant, temperature)
     out = {"run_id": run_id, "game": game, "mode": mode, "checkpoint": checkpoint, "variant": variant,
-           "temperature": temperature, "event_driven": event_driven, "episodes": episodes,
+           "temperature": temperature, "event_driven": event_driven, "heartbeat_s": heartbeat_s, "episodes": episodes,
            "seed0": seed0, "scenarios": {}}
     t_wall = time.time()
     for sc in scenarios:
@@ -47,7 +49,7 @@ def run_suite(game: str, mode: str, scenarios: list[str], episodes: int, seed0: 
             lcfg = spec.config.get("laya", {})
             cfg = RuntimeConfig(cadence_s=lcfg.get("cadence_ms", 100) / 1000,
                                 brain_latency_s=spec.config.get("brain", {}).get("latency_s", 2.0),
-                                heartbeat_s=spec.config.get("brain", {}).get("heartbeat_s", 10.0),
+                                heartbeat_s=heartbeat_s or spec.config.get("brain", {}).get("heartbeat_s", 10.0),
                                 event_driven=event_driven, label_fraction=label_fraction, seed=seed)
             rt, adapter = build_runtime(spec, sc, seed, log, brain, model, run_id, cfg)
             w0 = time.time()
@@ -126,12 +128,13 @@ def main() -> None:
     ap.add_argument("--temperature", type=float)
     ap.add_argument("--poll-brain", action="store_true", help="brain reviews every heartbeat (not event-driven)")
     ap.add_argument("--label-fraction", type=float, default=0.0)
+    ap.add_argument("--heartbeat", type=float)
     ap.add_argument("--baseline")
     ap.add_argument("--out")
     a = ap.parse_args()
     spec = game_spec(a.game)
     res = run_suite(a.game, a.mode, a.scenarios or spec.scenarios, a.episodes, a.seed0, a.checkpoint,
-                    a.variant, a.temperature, not a.poll_brain, a.label_fraction)
+                    a.variant, a.temperature, not a.poll_brain, a.label_fraction, heartbeat_s=a.heartbeat)
     if a.baseline:
         res["gate"] = compare(res, json.loads(Path(a.baseline).read_text()))
     for sc, s in res["scenarios"].items():

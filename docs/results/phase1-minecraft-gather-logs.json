@@ -1,0 +1,78 @@
+{
+ "run_id": "minecraft-20261107T162027",
+ "server": "flying-squid (local, offline, 127.0.0.1)",
+ "brain": "scripted stand-in (no LLM key in this environment)",
+ "laya": "not used in Phase 1",
+ "world": {
+  "ready": true,
+  "port": 25599,
+  "version": "1.21.4",
+  "base": {
+   "x": 0,
+   "y": 5,
+   "z": 0
+  },
+  "trees": 24,
+  "logs": 84
+ },
+ "play_rules_refusal": "refused: no recorded owner permission for 'mc.example.net:25565'",
+ "kill_drill": {
+  "controls_before": {
+   "forward": true,
+   "back": false,
+   "left": false,
+   "right": false,
+   "jump": false,
+   "sprint": true,
+   "sneak": false
+  },
+  "controls_after_release": {
+   "forward": false,
+   "back": false,
+   "left": false,
+   "right": false,
+   "jump": false,
+   "sprint": false,
+   "sneak": false
+  },
+  "all_released": true,
+  "bridge_exited": true,
+  "stop_ms": 154.6,
+  "handler_errors": []
+ },
+ "mission": {
+  "scenario": "gather_logs",
+  "success": true,
+  "t": 265.46,
+  "deaths": 0,
+  "logs": 64,
+  "base_dist": 2.86,
+  "hp": 20,
+  "food": 20,
+  "decisions": 2080,
+  "goals_sent_down": 2,
+  "events_up": 2,
+  "events_to_brain": 1,
+  "brain_calls": 2082,
+  "goal_intents": [
+   "gather:wood",
+   "return:base"
+  ],
+  "event_log": [
+   "first oak_log",
+   "goal gather:wood succeeded"
+  ],
+  "kill_switch": {
+   "tripped": false,
+   "reason": ""
+  },
+  "log": "logs/minecraft-20261107T162027",
+  "bridge_events": [],
+  "bridge_event_counts": {
+   "collect": 64,
+   "dug": 69,
+   "health": 1
+  }
+ },
+ "exit_criterion_passed": true
+}

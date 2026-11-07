@@ -98,6 +98,8 @@ class BotRuntime:
         self.stats = EpisodeStats()
         self.t = 0.0
         self.done = False
+        self.batcher = None                                   # set by HiveRuntime
+        self.summary_extra = None                             # hive: extra status for the brain
 
         self.kill.on_trip(self._on_kill)
         if self.cfg.watchdog_s:
@@ -122,6 +124,10 @@ class BotRuntime:
             self._event("kill", 1.0, f"kill switch: {self.kill.reason}")
             self.log.flush()
 
+    def _summary(self, state, goal) -> str:
+        text = self.a.summarise(state, goal)
+        return text + "\n" + self.summary_extra() if self.summary_extra else text
+
     @property
     def goal(self) -> Goal | None:
         return self.goals[0] if self.goals else None
@@ -141,7 +147,7 @@ class BotRuntime:
         state = self.a.read_state()
         self.t = self.a.facts(state).t
         self.last_brain_t = self.t
-        self.set_goals(self.brain.plan(self.mission, self.a.summarise(state, None), self.h()))
+        self.set_goals(self.brain.plan(self.mission, self._summary(state, None), self.h()))
 
     def step(self) -> bool:
         if self.done or self.kill.check():
@@ -181,6 +187,11 @@ class BotRuntime:
         self.prev_state, self.prev_facts = state, f
         if self.done:
             return False
+        if self.batcher is not None:            # hive ticks adapters after the batch commits
+            return True
+        return self.after_decisions()
+
+    def after_decisions(self) -> bool:
         alive = self.a.tick()
         if not alive:
             self.done = True
@@ -218,9 +229,16 @@ class BotRuntime:
         if status != "active":
             self.goals.pop(0)
             sal = 0.7 if status == "failed" else 0.4
-            self._event("event", sal, f"goal {g.intent} {status}", goal_id=g.goal_id, status=status)
+            ev = self._event("event", sal, f"goal {g.intent} {status}", goal_id=g.goal_id, status=status)
             if not self.goals:
                 self._ask_plan(state, f"goal {g.intent} {status}")
+            else:                                   # wake condition 1 (§4): goal completed / failed
+                self.stats.events_to_brain += 1
+                self.last_brain_t = self.t
+                ng = self.brain.on_event(ev, self._summary(state, self.goal), self.goal, self.h())
+                if ng is not None:
+                    self.pending.append(_Pending(self.t + self.cfg.brain_latency_s, "goal",
+                                                 self.goal.goal_id, None, ng))
             return
         broken = [c for c in g.valid_while if not self.a.check(c, state)]
         if broken:
@@ -232,7 +250,8 @@ class BotRuntime:
         if any(p.kind == "plan" for p in self.pending):
             return
         self.last_brain_t = self.t
-        goals = self.brain.plan(self.mission, self.a.summarise(state, None) + f"\nwhy: {why}", self.h())
+        self.stats.events_to_brain += 1
+        goals = self.brain.plan(self.mission, self._summary(state, None) + f"\nwhy: {why}", self.h())
         self.pending.append(_Pending(self.t + self.cfg.brain_latency_s, "plan", None, None, goals))
 
     def _brain_wake(self, state, events: list[Event]) -> None:
@@ -250,7 +269,7 @@ class BotRuntime:
             self.last_brain_t = self.t
             return
         self.last_brain_t = self.t
-        g = self.brain.on_event(ev, self.a.summarise(state, self.goal), self.goal, self.h())
+        g = self.brain.on_event(ev, self._summary(state, self.goal), self.goal, self.h())
         if g is not None:
             self.pending.append(_Pending(self.t + self.cfg.brain_latency_s, "goal",
                                          self.goal.goal_id if self.goal else None, None, g))
@@ -287,12 +306,19 @@ class BotRuntime:
         g = self.goal
         text = self.a.describe(state, g, {"pred": pred, "drives": drives, "wm": self.wm.recent(3)})
         opts = self.a.options(state, g)
-        ctx = self.a.context(state, g)
+        if self.batcher is not None:            # hive: decided in one batch with the other bots
+            self.batcher.add(self, (state, g, text, opts))
+            return
         dist = self.model.decide(text, opts)
         latency = getattr(self.model, "last_latency_ms", None)
         if latency is None:
             latency = getattr(getattr(self.model, "last", None), "latency_ms", 0.0)
         cached = bool(getattr(self.model, "last_cached", False))
+        self.commit_decision((state, g, text, opts), dist, latency, cached)
+
+    def commit_decision(self, req, dist: dict, latency: float, cached: bool) -> None:
+        state, g, text, opts = req
+        ctx = self.a.context(state, g)
         act, top, margin = self.policy.should_act(dist)
         self.stats.decisions += 1
         self.stats.cache_hits += int(cached)
@@ -326,7 +352,7 @@ class BotRuntime:
         self.stats.escalations += 1
         self.stats.escalation_reasons[reason] = self.stats.escalation_reasons.get(reason, 0) + 1
         esc = Escalation(**self.h(), goal_id=g.goal_id if g else "none", reason=reason,
-                         summary=self.a.summarise(state, g), fallback_action=fallback,
+                         summary=self._summary(state, g), fallback_action=fallback,
                          distribution=dist)
         self.log.write(esc)
         self.bus.publish(f"escalation.{self.hdr['bot_id']}", esc)

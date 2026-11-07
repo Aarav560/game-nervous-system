@@ -27,6 +27,7 @@ PICK_TIER = {"pickaxe": 0, "wooden_pickaxe": 0, "stone_pickaxe": 1, "iron_pickax
 RECIPES = {"iron_pickaxe": {"iron_ore": 3, "log": 2}, "stone_pickaxe": {"cobblestone": 3, "log": 2}}
 FOOD = {"bread": (6, 0.0), "golden_apple": (4, 4.0)}   # hunger restored, hp restored
 EAT_TICKS = 32
+WHIFF = 0.10         # chance a melee swing misses (breaks lockstep symmetry, like aim error / ping)
 
 
 @dataclass
@@ -99,6 +100,7 @@ class World:
         self.blocks: dict[tuple[int, int], list] = {}       # cell -> [kind, remaining units]
         self.places: dict[str, tuple[float, float]] = {}
         self.spawner: dict | None = None
+        self.structures: dict[str, dict] = {}                # name -> {need, have, built}
         self.events: list[tuple] = []                       # (t, kind, data) since last drain
         self._next_id = 0
 
@@ -149,16 +151,25 @@ class World:
                 target.hp, target.alive = 0.0, False
                 self.events.append((self.t, "death", target.id, src.id if src else None))
 
-    def _attack(self, a: Agent) -> None:
+    def _plan_attack(self, a: Agent):
+        """Decide a hit from the pre-attack state; all hits in a tick land simultaneously,
+        so tick order never decides who strikes first."""
         tgt = self.agents.get(a.attack) if a.attack else None
         if tgt is None or not tgt.alive or a.cd > 0 or a.eating:
-            return
+            return None
         d = a.dist(tgt)
         if d > a.reach:
-            return
+            return None
         dx, dy = (tgt.x - a.x) / max(d, 1e-6), (tgt.y - a.y) / max(d, 1e-6)
         approach = a.vx * dx + a.vy * dy
         crit = a.sprint and approach > a.speed * 0.9
+        if self.rng.random() < WHIFF:            # aim error: the swing misses, cooldown still spent
+            a.cd = a.cooldown
+            return None
+        return (a, tgt, crit, dx, dy)
+
+    def _apply_attack(self, hit) -> None:
+        a, tgt, crit, dx, dy = hit
         a.hits += 1
         a.crits += int(crit)
         self.hurt(tgt, a.damage * (1.5 if crit else 1.0), a)
@@ -175,9 +186,11 @@ class World:
         for a in list(self.agents.values()):
             if a.alive:
                 self._physics(a)
+        hits = [h for a in list(self.agents.values()) if a.alive and (h := self._plan_attack(a))]
+        for h in hits:
+            self._apply_attack(h)
         for a in list(self.agents.values()):
             if a.alive:
-                self._attack(a)
                 self._mine(a)
                 self._eat(a)
                 self._metabolism(a)
@@ -262,6 +275,24 @@ class World:
         self.events.append((self.t, "crafted", a.id, item))
         return True
 
+    def deposit(self, a: Agent, name: str) -> int:
+        """Hand materials for a blueprint over at base; returns units delivered."""
+        st = self.structures.get(name)
+        base = self.places.get("base")
+        if st is None or base is None or math.hypot(a.x - base[0], a.y - base[1]) > 3.0:
+            return 0
+        n = 0
+        for item, need in st["need"].items():
+            give = min(a.count(item), need - st["have"].get(item, 0))
+            if give > 0:
+                a.inventory[item] -= give
+                st["have"][item] = st["have"].get(item, 0) + give
+                n += give
+        if not st["built"] and all(st["have"].get(k, 0) >= v for k, v in st["need"].items()):
+            st["built"] = True
+            self.events.append((self.t, "built", a.id, name))
+        return n
+
     def _metabolism(self, a: Agent) -> None:
         if a.regen_t > 0:
             a.regen_t -= 1
@@ -293,9 +324,11 @@ class World:
         mobs = [a for a in self.agents.values() if a.kind == s["kind"] and a.alive]
         if len(mobs) >= s["max"]:
             return
-        anchor = self.agents.get(s["near"])
-        if anchor is None or not anchor.alive:
+        near = s["near"] if isinstance(s["near"], list) else [s["near"]]
+        alive = [self.agents[i] for i in near if i in self.agents and self.agents[i].alive]
+        if not alive:
             return
+        anchor = self.rng.choice(alive)
         ang = self.rng.uniform(0, 2 * math.pi)
         r = self.rng.uniform(s.get("rmin", 14), s.get("rmax", 22))
         x = min(self.size - 1, max(1, anchor.x + r * math.cos(ang)))

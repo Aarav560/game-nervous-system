@@ -15,7 +15,7 @@ from .scenarios import BOT, SCENARIOS, Scenario
 from .world import World
 
 CONFIG = Path(__file__).resolve().parents[4] / "configs/games/gridcraft.yaml"
-RESOURCE_BLOCK = {"wood": "tree", "log": "tree", "logs": "tree", "iron_ore": "iron_ore",
+RESOURCE_BLOCK = {"wood": "tree", "log": "tree", "logs": "tree", "iron_ore": "iron_ore", "cobblestone": "stone",
                   "iron": "iron_ore", "diamond": "diamond_ore", "diamonds": "diamond_ore",
                   "stone": "stone"}
 RESOURCE_ITEM = {"tree": "log", "iron_ore": "iron_ore", "diamond_ore": "diamond", "stone": "cobblestone"}
@@ -34,7 +34,8 @@ class GridCraftAdapter(GameAdapter):
     stepped = True
 
     def __init__(self, scenario: Scenario | str, seed: int = 0, config: dict | None = None,
-                 world: World | None = None, bot_id: str = BOT):
+                 world: World | None = None, bot_id: str = BOT, owns_world: bool = True,
+                 combat_policy: str | None = None):
         self.cfg = config or load_config()
         self.profile = self.cfg["profile"]
         self.rules = PlayRules.from_config(self.cfg["play_rules"])
@@ -50,6 +51,16 @@ class GridCraftAdapter(GameAdapter):
         self.visits: dict = {}
         self.engaged_target: str | None = None
         self._last_hp = 20.0
+        self.owns_world = owns_world               # hive: the HiveRuntime steps a shared world
+        self.markers: list[tuple[float, float]] = []   # hive danger markers to avoid
+        self.deposited = 0
+        self.combat_policy = None
+        path = combat_policy or (self.cfg.get("reflexes") or {}).get("combat_policy")
+        if path:
+            from .combat import load_policy
+            p = Path(path) if Path(path).is_absolute() else CONFIG.parents[2] / path
+            if p.exists():
+                self.combat_policy = load_policy(p)
 
     # ------------------------------------------------------------------ connection
     def connect(self, context: Context, address: str | None = None) -> None:
@@ -123,11 +134,18 @@ class GridCraftAdapter(GameAdapter):
             item = RESOURCE_ITEM.get(RESOURCE_BLOCK.get(arg, arg), arg)
             if b.count(item) >= self._goal_amount(goal):
                 return "succeeded"
+            kind = RESOURCE_BLOCK.get(arg, arg)
+            if not any(k == kind for k, _ in w.blocks.values()):
+                return "failed"                       # resource exhausted everywhere
             return "active"
         if verb == "return" and arg:
             px, py = w.places.get(arg, (b.x, b.y))
             return "succeeded" if math.hypot(b.x - px, b.y - py) <= 3.0 else "active"
         if verb == "build" and arg:
+            st = w.structures.get(arg)
+            if st is not None:
+                carrying = any(b.count(k) > 0 and st["have"].get(k, 0) < n for k, n in st["need"].items())
+                return "succeeded" if st["built"] or not carrying else "active"
             return "succeeded" if b.count(arg) > 0 else "active"
         if verb == "engage":
             tgt = w.agents.get(goal.target or "")
@@ -222,12 +240,15 @@ class GridCraftAdapter(GameAdapter):
         inv = ", ".join(f"{k} x{v}" for k, v in sorted(b.inventory.items()) if v) or "empty"
         threats = ", ".join(f"{a.kind} at {b.dist(a):.0f}" for a in hs[:4]) or "none"
         base = w.places.get("base")
-        return (f"[t={w.t:.1f}s] game: gridcraft scenario {self.scenario.name}\n"
+        return (f"[t={w.t:.1f}s] [bot {self.bot_id}] game: gridcraft scenario {self.scenario.name}\n"
                 f"status: health {b.hp:.0f}/20, hunger {b.hunger:.0f}/20, offhand {b.offhand or 'empty'}\n"
                 f"inventory: {inv}\n"
                 f"position: ({b.x:.0f},{b.y:.0f}); base {('at (%.0f,%.0f)' % base) if base else 'none'}\n"
                 f"threats: {threats}\n"
-                f"active goal: {goal.intent if goal else 'none'}; reflex {self.current_choice or 'none'}")
+                f"active goal: {goal.intent if goal else 'none'}; reflex {self.current_choice.split('|')[0] or 'none'}"
+                + "".join(f"\nblueprint {n}: " + ("built" if st["built"] else "need " + " ".join(
+                    f"{k} {v - st['have'].get(k, 0)}" for k, v in st["need"].items()))
+                    for n, st in w.structures.items()))
 
     # ------------------------------------------------------------------ acting
     def _make_reflex(self, choice: str, goal: Goal | None) -> R._Base:
@@ -236,16 +257,16 @@ class GridCraftAdapter(GameAdapter):
         if verb == "continue":
                 gverb, garg = self._goal_parts(goal)
                 if gverb == "gather" and garg:
-                    r = R.Gather(w, b); r.start({"block": RESOURCE_BLOCK.get(garg, garg)}); return r
+                    r = R.Gather(w, b); r.start({"block": RESOURCE_BLOCK.get(garg, garg), "avoid": self.markers}); return r
                 if gverb == "return" and garg and garg in w.places:
                     x, y = w.places[garg]; r = R.Goto(w, b); r.start({"x": x, "y": y, "stop": 2.0}); return r
                 if gverb == "build" and garg:
-                    r = R.Craft(w, b); r.start({"item": garg}); return r
+                    return self._build(garg)
                 if gverb == "engage":
-                    r = R.Engage(w, b); r.start({"target": goal.target}); return r
+                    return self._engage(goal.target)
                 r = R.Idle(w, b); r.start({}); return r
         if verb == "engage":
-            r = R.Engage(w, b); r.start({"target": goal.target if goal and goal.intent == "engage" else None}); return r
+            return self._engage(goal.target if goal and goal.intent == "engage" else None)
         if verb == "disengage":
             r = R.Disengage(w, b); r.start({}); return r
         if verb == "heal":
@@ -261,8 +282,22 @@ class GridCraftAdapter(GameAdapter):
         if verb == "gather" and arg:
             r = R.Gather(w, b); r.start({"block": RESOURCE_BLOCK.get(arg, arg)}); return r
         if verb == "build" and arg:
-            r = R.Craft(w, b); r.start({"item": arg}); return r
+            return self._build(arg)
         r = R.Idle(w, b); r.start({}); return r
+
+    def _build(self, arg: str) -> R._Base:
+        if arg in self.w.structures:
+            r = R.Deposit(self.w, self.bot); r.start({"structure": arg}); return r
+        r = R.Craft(self.w, self.bot); r.start({"item": arg}); return r
+
+    def _engage(self, target: str | None) -> R._Base:
+        if self.combat_policy is not None:
+            from .combat import LearnedEngage
+            r = LearnedEngage(self.w, self.bot, self.combat_policy)
+        else:
+            r = R.Engage(self.w, self.bot)
+        r.start({"target": target})
+        return r
 
     def execute(self, choice: str, goal: Goal | None, w: World) -> None:
         key = choice + "|" + (goal.goal_id if goal else "")
@@ -286,7 +321,8 @@ class GridCraftAdapter(GameAdapter):
                 self.autonomic_log.append(a)
         cell = (int(b.x) // 16, int(b.y) // 16)
         self.visits[cell] = self.visits.get(cell, 0) + 1
-        w.step()
+        if self.owns_world:
+            w.step()
         return not self.episode_over()
 
     def episode_over(self) -> bool:
