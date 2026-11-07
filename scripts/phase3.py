@@ -38,9 +38,11 @@ def main() -> None:
         p2 = bench.run_suite("gridcraft", "laya", bench.game_spec("gridcraft").scenarios, a.episodes,
                              checkpoint=a.checkpoint, event_driven=False, heartbeat_s=a.p2_heartbeat,
                              label_fraction=0.05, model=model, run_id="phase3-p2-polled")
+        Path(a.out).with_name("phase2-laya.json").write_text(json.dumps(p2, indent=1, default=str) + "\n")
     p3 = bench.run_suite("gridcraft", "laya", bench.game_spec("gridcraft").scenarios, a.episodes,
                          checkpoint=a.checkpoint, event_driven=True, heartbeat_s=a.p3_heartbeat,
                          label_fraction=0.05, model=model, run_id="phase3-p3-event")
+    Path(a.out).with_name("phase3-laya-event-driven.json").write_text(json.dumps(p3, indent=1, default=str) + "\n")
     t2, t3 = p2["overall"]["brain_tokens_per_hour"], p3["overall"]["brain_tokens_per_hour"]
     gate = bench.compare(p3, p2)
     res = {"p2_polled": {k: p2[k] for k in ("overall", "heartbeat_s", "event_driven")},
