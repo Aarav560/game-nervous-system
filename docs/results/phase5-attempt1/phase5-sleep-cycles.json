@@ -1,0 +1,124 @@
+{
+ "history": [
+  {
+   "cycle": 0,
+   "checkpoint": "checkpoints/laya-gc-v1",
+   "escalations_per_hour": 30.6931326434619,
+   "acted_frac": 0.9980563620408676,
+   "success_rate": 0.95
+  },
+  {
+   "cycle": 1,
+   "checkpoint": "/home/user/game-nervous-system/checkpoints/laya-gc-sleep1",
+   "review": {
+    "corrections": 1133,
+    "dagger": 800,
+    "disagree": 29
+   },
+   "dataset": {
+    "train": 1382,
+    "calib": 91,
+    "test": 126,
+    "new_unique": 1199,
+    "replay": 400
+   },
+   "temperature": 1.544693469807041,
+   "test_calibrated": {
+    "n": 126,
+    "accuracy": 0.9841269841269841,
+    "ece": 0.05584945960796167,
+    "brier": 0.04278599034851538,
+    "acted_frac": 0.9523809523809523,
+    "accuracy_when_acted": 0.9833333333333333
+   },
+   "escalations_per_hour": 530.5585614630304,
+   "acted_frac": 0.6741383844848631,
+   "success_rate": 0.6,
+   "gate": {
+    "regressions": [
+     "duel: success 0.00 < 0.40",
+     "duel: deaths 1.00 > 0.60",
+     "diamonds: success 0.80 < 1.00",
+     "diamonds: deaths 0.20 > 0.00"
+    ],
+    "passed": false
+   },
+   "promoted": false,
+   "wall_s": 2167
+  },
+  {
+   "cycle": 2,
+   "checkpoint": "/home/user/game-nervous-system/checkpoints/laya-gc-sleep2",
+   "review": {
+    "corrections": 917,
+    "dagger": 800,
+    "disagree": 73
+   },
+   "dataset": {
+    "train": 1442,
+    "calib": 194,
+    "test": 88,
+    "new_unique": 1324,
+    "replay": 400
+   },
+   "temperature": 0.8626942065585022,
+   "test_calibrated": {
+    "n": 88,
+    "accuracy": 0.9318181818181818,
+    "ece": 0.055515211816353924,
+    "brier": 0.11836968834364468,
+    "acted_frac": 0.9204545454545454,
+    "accuracy_when_acted": 0.9382716049382716
+   },
+   "escalations_per_hour": 266.7242274793866,
+   "acted_frac": 0.8923598798525622,
+   "success_rate": 0.95,
+   "gate": {
+    "regressions": [],
+    "passed": true
+   },
+   "promoted": true,
+   "wall_s": 1431
+  },
+  {
+   "cycle": 3,
+   "checkpoint": "/home/user/game-nervous-system/checkpoints/laya-gc-sleep3",
+   "review": {
+    "corrections": 1143,
+    "dagger": 800,
+    "disagree": 34
+   },
+   "dataset": {
+    "train": 1333,
+    "calib": 158,
+    "test": 168,
+    "new_unique": 1259,
+    "replay": 400
+   },
+   "temperature": 0.8534221724257762,
+   "test_calibrated": {
+    "n": 168,
+    "accuracy": 0.9166666666666666,
+    "ece": 0.06442431278767807,
+    "brier": 0.13861666636719278,
+    "acted_frac": 0.9345238095238095,
+    "accuracy_when_acted": 0.9426751592356688
+   },
+   "escalations_per_hour": 564.140463654818,
+   "acted_frac": 0.8409104643886333,
+   "success_rate": 0.55,
+   "gate": {
+    "regressions": [
+     "duel: success 0.00 < 0.40",
+     "duel: deaths 1.00 > 0.60",
+     "diamonds: success 0.60 < 1.00",
+     "diamonds: deaths 0.40 > 0.00"
+    ],
+    "passed": false
+   },
+   "promoted": false,
+   "wall_s": 1572
+  }
+ ],
+ "skills": "gather:iron_ore 100% of 20; return:base 100% of 20; build:iron_pickaxe 100% of 20; gather:wood 100% of 20"
+}

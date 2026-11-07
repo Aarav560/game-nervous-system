@@ -20,6 +20,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT / "scripts"))
 
 from nervous_system.laya.model import QUESTION_ID, build_question  # noqa: E402
 from nervous_system.modules.memory import EpisodicMemory, SkillLibrary  # noqa: E402
@@ -71,13 +72,20 @@ def review(log_dir: Path, game: str, dagger: int, rng: random.Random, memory: Ep
     return rows, stats
 
 
-def write_dataset(rows: list[dict], replay: list[dict], out: Path, rng: random.Random) -> dict:
+def write_dataset(rows: list[dict], replay: list[dict], out: Path, rng: random.Random,
+                  anchor_calib: list[dict] = (), anchor_test: list[dict] = (), cap: int = 300) -> dict:
+    """New brain labels (capped per option set x label so one label cannot flood a night),
+    plus replay; calib/test are pooled with a fixed anchor slice of the original held-out sets so a
+    temperature is never fitted on a few dozen skewed examples (attempt 1 failure)."""
     out.mkdir(parents=True, exist_ok=True)
-    seen, uniq = set(), []
+    seen, uniq, per = set(), [], {}
+    rng.shuffle(rows)
     for r in rows:
         k = (r["state"], tuple(r["options"]))
-        if k not in seen:
+        key = (tuple(r["options"]), r["label"])
+        if k not in seen and per.get(key, 0) < cap:
             seen.add(k)
+            per[key] = per.get(key, 0) + 1
             uniq.append(r)
     eps = sorted({r["ep"] for r in uniq})
     rng.shuffle(eps)
@@ -89,10 +97,20 @@ def write_dataset(rows: list[dict], replay: list[dict], out: Path, rng: random.R
     for r in uniq:
         split["test" if r["ep"] in test_eps else "calib" if r["ep"] in calib_eps else "train"].append(to_row(r))
     split["train"] += replay
+    split["calib"] += list(anchor_calib)
+    split["test"] += list(anchor_test)
     rng.shuffle(split["train"])
     for k, v in split.items():
         (out / f"{k}.jsonl").write_text("".join(json.dumps(x) + "\n" for x in v))
-    return {k: len(v) for k, v in split.items()} | {"new_unique": len(uniq), "replay": len(replay)}
+    return {k: len(v) for k, v in split.items()} | {"new_unique": len(uniq), "replay": len(replay),
+                                                    "anchor_calib": len(anchor_calib), "anchor_test": len(anchor_test)}
+
+
+def stratified_replay(pool: list[dict], n: int, rng: random.Random) -> list[dict]:
+    """Half combat rows, half everything else, so combat skills are not forgotten."""
+    combat = [r for r in pool if "engage" in r["questions"]["action"]["criteria"]]
+    other = [r for r in pool if "engage" not in r["questions"]["action"]["criteria"]]
+    return rng.sample(combat, min(n // 2, len(combat))) + rng.sample(other, min(n - n // 2, len(other)))
 
 
 def run(cmd: list[str], log: Path) -> None:
@@ -111,7 +129,9 @@ def main() -> None:
     ap.add_argument("--champion-bench", required=True, help="bench JSON of the champion")
     ap.add_argument("--baseline", required=True, help="brain-only bench JSON (regression gate)")
     ap.add_argument("--replay", default=str(ROOT / "data/gridcraft-v1/train.jsonl"))
-    ap.add_argument("--replay-n", type=int, default=800)
+    ap.add_argument("--replay-n", type=int, default=1200)
+    ap.add_argument("--anchor", default=str(ROOT / "data/gridcraft-v1"), help="original calib/test to pool with")
+    ap.add_argument("--anchor-n", type=int, default=300)
     ap.add_argument("--dagger", type=int, default=1200)
     ap.add_argument("--episodes", type=int, default=5)
     ap.add_argument("--threads", type=int, default=4)
@@ -123,6 +143,9 @@ def main() -> None:
     champion, review_dir = a.champion, Path(a.review)
     champ_bench = json.loads(Path(a.champion_bench).read_text())
     replay_pool = [json.loads(l) for l in open(a.replay)]
+    arng = random.Random(11)
+    anchor_calib = arng.sample([json.loads(l) for l in open(Path(a.anchor) / "calib.jsonl")], a.anchor_n)
+    anchor_test = arng.sample([json.loads(l) for l in open(Path(a.anchor) / "test.jsonl")], a.anchor_n)
     history = [{"cycle": 0, "checkpoint": champion,
                 "escalations_per_hour": champ_bench["overall"]["escalations_per_hour"],
                 "acted_frac": champ_bench["overall"]["acted_frac"],
@@ -131,9 +154,9 @@ def main() -> None:
         t0 = time.time()
         rows, rstats = review(review_dir, a.game, a.dagger, rng, memory, skills)
         skills.save()
-        replay = rng.sample(replay_pool, min(a.replay_n, len(replay_pool)))
+        replay = stratified_replay(replay_pool, a.replay_n, rng)
         data = ROOT / f"data/sleep-{c}"
-        dstats = write_dataset(rows, replay, data, rng)
+        dstats = write_dataset(rows, replay, data, rng, anchor_calib, anchor_test)
         replay_pool += [json.loads(l) for l in open(data / "train.jsonl")][: a.dagger]
         ckpt = str(ROOT / f"checkpoints/laya-gc-sleep{c}")
         run([PY, "scripts/train_laya.py", "--init", champion, "--data", str(data), "--out", ckpt,
@@ -144,13 +167,17 @@ def main() -> None:
              "--episodes", str(a.episodes), "--label-fraction", "0.05", "--baseline", a.baseline,
              "--out", str(bench_out)], ROOT / f"logs/sleep-{c}-bench.log")
         b = json.loads(bench_out.read_text())
-        prev = history[-1]
-        promote = b["gate"]["passed"] and b["overall"]["escalations_per_hour"] <= prev["escalations_per_hour"] * 1.05
+        # promote only against the CURRENT CHAMPION (attempt 1 compared with the previous cycle)
+        vs_champ = __import__("bench").compare(b, champ_bench)
+        champ_esc = champ_bench["overall"]["escalations_per_hour"]
+        promote = (b["gate"]["passed"] and vs_champ["passed"]
+                   and b["overall"]["escalations_per_hour"] <= champ_esc * 1.05)
         entry = {"cycle": c, "checkpoint": ckpt, "review": rstats, "dataset": dstats,
                  "temperature": cal["temperature"], "test_calibrated": cal["metrics"]["test_calibrated"],
                  "escalations_per_hour": b["overall"]["escalations_per_hour"],
                  "acted_frac": b["overall"]["acted_frac"], "success_rate": b["overall"]["success_rate"],
-                 "gate": b["gate"], "promoted": promote, "wall_s": round(time.time() - t0)}
+                 "gate": b["gate"], "gate_vs_champion": vs_champ, "champion_escalations_per_hour": champ_esc,
+                 "promoted": promote, "wall_s": round(time.time() - t0)}
         history.append(entry)
         print(json.dumps(entry, indent=1, default=str), flush=True)
         if promote:
@@ -160,7 +187,8 @@ def main() -> None:
         Path(a.out).write_text(json.dumps({"history": history, "skills": skills.summary(a.game)}, indent=1,
                                           default=str) + "\n")
     esc = [h["escalations_per_hour"] for h in history]
-    print("escalations/hour by cycle:", [round(x) for x in esc])
+    champ = [h["escalations_per_hour"] for h in history if h["cycle"] == 0 or h.get("promoted")]
+    print("escalations/hour by cycle:", [round(x) for x in esc], "champions:", [round(x) for x in champ])
 
 
 if __name__ == "__main__":
