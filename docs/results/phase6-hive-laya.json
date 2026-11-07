@@ -1,0 +1,82 @@
+{
+ "mode": "laya",
+ "checkpoint": "checkpoints/laya-gc-v1",
+ "bots": 5,
+ "coordination": true,
+ "episodes": 3,
+ "success_rate": 1.0,
+ "mean_time_s": 37.86666666666667,
+ "mean_bots_dead": 0.0,
+ "brain_instances": 1,
+ "mean_brain_calls": 21.0,
+ "mean_batch": 4.996174008508302,
+ "acted_frac": 0.9992731013585248,
+ "episodes_detail": [
+  {
+   "seed": 5000,
+   "success": true,
+   "t": 35.0,
+   "delivered": {
+    "log": 60,
+    "cobblestone": 30
+   },
+   "bots_dead": 0,
+   "decisions": 1748,
+   "acted_frac": 0.9994279176201373,
+   "escalations": 1,
+   "brain_calls": 16,
+   "brain_instances": 1,
+   "bus_messages": 75,
+   "hive_messages": 23,
+   "danger_markers": 2,
+   "laya_batches": 350,
+   "mean_batch": 4.994285714285715,
+   "max_batch": 5,
+   "wall_s": 162.5
+  },
+  {
+   "seed": 5001,
+   "success": true,
+   "t": 44.0,
+   "delivered": {
+    "cobblestone": 30,
+    "log": 60
+   },
+   "bots_dead": 0,
+   "decisions": 2200,
+   "acted_frac": 0.9995454545454545,
+   "escalations": 1,
+   "brain_calls": 29,
+   "brain_instances": 1,
+   "bus_messages": 122,
+   "hive_messages": 32,
+   "danger_markers": 6,
+   "laya_batches": 440,
+   "mean_batch": 5.0,
+   "max_batch": 5,
+   "wall_s": 223.7
+  },
+  {
+   "seed": 5002,
+   "success": true,
+   "t": 34.6,
+   "delivered": {
+    "cobblestone": 30,
+    "log": 60
+   },
+   "bots_dead": 0,
+   "decisions": 1733,
+   "acted_frac": 0.9988459319099827,
+   "escalations": 2,
+   "brain_calls": 18,
+   "brain_instances": 1,
+   "bus_messages": 69,
+   "hive_messages": 22,
+   "danger_markers": 3,
+   "laya_batches": 347,
+   "mean_batch": 4.994236311239193,
+   "max_batch": 5,
+   "wall_s": 155.1
+  }
+ ]
+}
