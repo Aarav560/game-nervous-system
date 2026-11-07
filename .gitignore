@@ -7,3 +7,4 @@ checkpoints/
 logs/
 *.sqlite
 .env
+node_modules/

@@ -1,0 +1,13 @@
+{
+  "name": "gns-minecraft-bridge",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Mineflayer bridge for the Game Nervous System Minecraft adapter (localhost JSON-lines socket)",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "flying-squid": "^1.12.0",
+    "mineflayer": "^4.39.0",
+    "mineflayer-pathfinder": "^2.4.5"
+  }
+}

@@ -1,0 +1,36 @@
+# GridCraft adapter config (Architecture §8, §14). GridCraft is this repo's own headless simulator.
+game: gridcraft
+profile: realtime_strategic        # turn_based | realtime_strategic | realtime_twitch
+tick_hz: 20
+combat_radius: 6.0
+
+brain:
+  heartbeat_s: 10
+  latency_s: 2.0                   # simulated brain reply latency (game seconds)
+
+laya:
+  checkpoint: laya-multilingual
+  cadence_ms: 100
+  act_threshold: 0.75
+  min_margin: 0.15
+  max_state_tokens: 350
+
+play_rules:
+  allowed: [singleplayer]          # in-process simulator only
+  permitted_servers: []
+
+autonomic:
+  eat_below_hunger: 14
+  totem_offhand: true
+
+reward:
+  damage_taken: -1.0
+  damage_dealt: 0.5
+  death: -20.0
+  goal_complete: 10.0
+  idle_second: -0.05
+
+option_sets:
+  combat: [engage, disengage, heal, reposition, "use_ability:totem_swap", escalate]
+  gathering: [continue, "return:base", disengage, heal, explore, escalate]
+  travel: [continue, reposition, disengage, wait, escalate]

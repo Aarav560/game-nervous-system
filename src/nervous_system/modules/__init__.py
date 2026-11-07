@@ -1,8 +1,10 @@
 """Supporting modules (Architecture §7)."""
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from collections import deque
 from typing import Any
+
 from ..protocol import Event
 
 
@@ -43,12 +45,4 @@ class Drives(ABC):
     def compute(self, state: Any) -> dict[str, float]: ...
 
 
-class KillSwitch:
-    """Hard stop independent of every other component (§7.11)."""
-
-    def __init__(self) -> None:
-        self.tripped = False
-        self.reason = ""
-
-    def trip(self, reason: str) -> None:
-        self.tripped, self.reason = True, reason
+from .killswitch import KillSwitch  # noqa: E402,F401
