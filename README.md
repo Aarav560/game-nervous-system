@@ -14,6 +14,7 @@ First testbed: **Minecraft** (Mineflayer bridge, tested against a local flying-s
 
 ## Docs
 
+- [Guide](docs/GUIDE.md) — apply this to your own game or app with AI (Claude Code skill: `.claude/skills/building-nervous-systems/`).
 - [Architecture](docs/ARCHITECTURE.md) — full design: tiers, modules, protocol, learning loop, multi-game plan, rules.
 - [Roadmap](docs/ROADMAP.md) — phases with exit criteria and current status.
 - [Results](docs/results/README.md) — what each phase measured, including what did **not** pass.
